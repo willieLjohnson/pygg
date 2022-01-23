@@ -14,7 +14,7 @@ A modular pygame wrapper that adds ECS, procedural generation, cameras, and phys
     - **Screen** - cameras, canvas, screen, and window size.
     - **Gameobjects** - ecs.
 
-## how to use:
+## How to use it
 
  Clone the repo into your project:
 
@@ -24,7 +24,7 @@ cd your_project/src && git clone https://github.com/willieLjohnson/pygg.git
 
 ```
 
-### Hello World example 
+### Hello World
 
 > importing the whole module
 
@@ -47,7 +47,7 @@ game.Game("Hello World").run()
 
 ```
 
-### Using pygg in your project
+### Example Project
 
 > Sample game
 
@@ -84,7 +84,7 @@ from . import bouncygame
 
 import pygame
 from random import random
-from . import pygg as GG
+from . import pygg as GG # or `import pygg as GG` if there is no parent package
 
  
 class Game(GG.Game):
