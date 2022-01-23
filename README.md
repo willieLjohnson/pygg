@@ -8,17 +8,17 @@ super simple wrapper for pygame that i'm use to prototype games
 
 2. import it:
 
-'''bash
+```bash
 
 from . import pygg as GG
 
-'''
+```
 
 3. use GG to access all the needed files:
 
 > Sample game
 
-'''python
+```python
 
 import pygame
 from random import random
@@ -82,5 +82,5 @@ class BouncyGame(GG.Game):
         if keys[pygame.K_d]:
             self.speed_multiplier += 0.001
 
-'''
+```
 
