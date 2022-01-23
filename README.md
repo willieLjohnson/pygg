@@ -83,10 +83,9 @@ from . import bouncygame
 # src/bouncygame.py
 
 import pygame
-from . import pygg as GG # or `import pygg as GG` if there is no parent package
+from . import pygg as GG
 
- 
-class Game(GG.Game):
+class BouncyGame(GG.Game):
 
     def __init__(self):
         super().__init__('bouncy')
@@ -101,7 +100,11 @@ class Game(GG.Game):
         self.running = True
 
         while self.running:
+            self._handle_quit()
+            self._handle_input()
+            
             self.clock.tick(60)
+            
             for bouncy in self.gameobjects:
                 bouncy_body =  bouncy.get_component(GG.ComponentType.BODY)
                 bouncy_body.velocity *= self.speed_multiplier
@@ -111,10 +114,11 @@ class Game(GG.Game):
                     bouncy_body.velocity.y *= -1
                     
             self.gameobjects.update()
-   
-            self._handle_input()
-            GG.screen.fill(GG.STYLE.BLACK)
-            self.gameobjects.draw(GG.screen)
+            
+            GG.main.fill(GG.STYLE.BLACK)
+            
+            self.gameobjects.draw(GG.main)
+            
             pygame.display.update()
 
         pygame.quit()
@@ -132,10 +136,6 @@ class Game(GG.Game):
         
              
     def _handle_input(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.running = False
-        
         keys = pygame.key.get_pressed()  #checking pressed keys
 
         if keys[pygame.K_a]:
