@@ -1,5 +1,6 @@
 # pygg
 
+super simple wrapper for pygame that i'm use to prototype games
 
 ## how to use:
 
@@ -7,8 +8,10 @@
 
 2. import it:
 
-'''
+'''bash
+
 from . import pygg as GG
+
 '''
 
 3. use GG to access all the needed files:
@@ -16,6 +19,7 @@ from . import pygg as GG
 > Sample game
 
 '''python
+
 import pygame
 from random import random
 from . import pygg as GG
@@ -77,8 +81,6 @@ class BouncyGame(GG.Game):
             self.speed_multiplier -= 0.001
         if keys[pygame.K_d]:
             self.speed_multiplier += 0.001
+
 '''
-
-
-super simple wrapper for pygame that i'm use to prototype games
 
