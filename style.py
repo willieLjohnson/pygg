@@ -1,6 +1,12 @@
 from dataclasses import dataclass
+from re import A
 
 from . import generator as RNG
+
+import pygame
+
+pygame.init()
+
 
 @dataclass
 class Color:
@@ -20,10 +26,31 @@ class Color:
     
 @dataclass
 class STYLE():
+    _FONT: pygame.font.Font
     BLACK: Color = (0, 0, 0)
     WHITE: Color = (225, 255, 255)
     BLUE: Color = (50, 50, 255)
     BROWN: Color = (139, 69, 19)
+    RED: Color = (255, 0, 0)
+    YELLOW: Color = (0, 255, 255)
+    FONT_SIZE: int = 36
+    
+    def __init__(self):
+        self._FONT = self._generate_font()
+    
+    def _generate_font(self):
+        return pygame.font.Font(pygame.font.get_default_font(), self.FONT_SIZE)
+    
+    @property
+    def FONT(self): 
+        return self._FONT
+  
+# PYGG Palette https://coolors.co/464d77-36827f-f9db6d-f4eded-ff5d73  
+class GGSTYLE(STYLE):
+    RED: Color = (255, 93, 115)
+    WHITE: Color = (244, 237, 237)
+    YELLOW: Color = (249, 219, 109)
+    GREEN: Color = (54, 130, 127)
+    NAVY: Color = (70, 77, 119)
     STONE: Color = (55, 70, 70)
-    RED: Color = (255, 50, 50)
-    RED_FADED: Color = (125, 50, 50)
+    FONT_SIZE: int = 1000
