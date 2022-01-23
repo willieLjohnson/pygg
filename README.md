@@ -1,6 +1,6 @@
 # pygg
 
-A modular pygame wrapper that adds ECS, procedural generation, cameras, and physics
+A modular pygame wrapper that adds ECS, procedural generation, cameras, and physics.
 
 ## Features
 
@@ -83,7 +83,6 @@ from . import bouncygame
 # src/bouncygame.py
 
 import pygame
-from random import random
 from . import pygg as GG # or `import pygg as GG` if there is no parent package
 
  
