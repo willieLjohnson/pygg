@@ -1,31 +1,93 @@
 # pygg
 
-super simple wrapper for pygame that i'm use to prototype games
+A modular pygame wrapper that adds ECS, procedural generation, cameras, and physics
+
+## Features
+
+- Super simple.
+- Modularity using ECS and OOP.
+- Core modules:
+    - **Game** - the main class that handles the game loop.
+    - **Generator** - procedural generation.
+    - **Style** - color palette system that allows you to easily change color of the whole game during runtime.
+    - **World** - game world configuration.
+    - **Screen** - cameras, canvas, screen, and window size.
+    - **Gameobjects** - ecs.
 
 ## how to use:
 
-1. clone the repo into your project
-
-2. import it:
+ Clone the repo into your project:
 
 ```bash
 
-from . import pygg as GG
+cd your_project/src && git clone https://github.com/willieLjohnson/pygg.git
 
 ```
 
-3. use GG to access all the needed files:
+### Hello World example 
+
+> importing the whole module
+
+```python
+
+import pygg as GG
+
+GG.Game("Hello World").run()
+
+```
+
+> importing submodules
+
+```python
+
+from pygg import game
+
+game.Game("Hello World").run()
+
+
+```
+
+### Using pygg in your project
 
 > Sample game
 
+```
+bouncy:
+    src:
+        __init__.py
+        pygg/
+        bouncygame.py
+    rungame.py
+```
+
 ```python
+
+# rungame.py
+
+import src.bouncygame as Bouncy
+Bouncy.Game().run()
+
+```
+
+```python
+
+# src/__init__.py
+
+from . import bouncygame
+
+```
+
+
+```python
+
+# src/bouncygame.py
 
 import pygame
 from random import random
 from . import pygg as GG
 
  
-class BouncyGame(GG.Game):
+class Game(GG.Game):
 
     def __init__(self):
         super().__init__('bouncy')
