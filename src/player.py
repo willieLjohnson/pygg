@@ -1,9 +1,11 @@
 import pygame
 
+from src.pygg.src.game import Game
+
 from . import gameobjects
 from . import world
 
-Entity = gameobjects.Entity
+GameObject = gameobjects.GameObject
 playerName = gameobjects.PLAYER_NAME
 playerColor = gameobjects.PLAYER_COLOR
 ComponentType = gameobjects.ComponentType
@@ -12,12 +14,9 @@ Body = gameobjects.Body
 
 Vec2 = world.Vec2
 
-class Player(Entity):
+class Player(GameObject):
     def __init__(self, game, x, y):
-        super().__init__(playerName)
-        self.game = game
-        self.set_component(ComponentType.BODY, Body(Vec2(x, y), Vec2(15,15), playerColor, 3, Vec2(0,0)))
-        self._updatesprite()
+        super().__init__(game, playerName, Vec2(x, y), Vec2(15, 15), playerColor, 3)
     
     def update(self):
         super().update()
@@ -27,6 +26,5 @@ class Player(Entity):
         enemies_hit = pygame.sprite.spritecollide(self, self.game.enemies, False)
 
         for enemy in enemies_hit:
-            print(enemy)
             enemy.receiveDamage(10)
     
