@@ -16,7 +16,7 @@ class Player(Entity):
     def __init__(self, game, x, y):
         super().__init__(playerName)
         self.game = game
-        self.set_component(ComponentType.BODY, Body(Vec2(x, y), Vec2(15,15), playerColor, Vec2(0,0), 3))
+        self.set_component(ComponentType.BODY, Body(Vec2(x, y), Vec2(15,15), playerColor, 3, Vec2(0,0)))
         self._updatesprite()
     
     def update(self):

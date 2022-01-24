@@ -1,3 +1,4 @@
+from abc import abstractclassmethod
 import pygame
 import uuid
 from enum import Enum
@@ -10,7 +11,7 @@ from . import style
 World = world.World
 Vec2 = world.Vec2
 Color = style.Color
-STYLE = style.STYLE
+STYLE = style.GGSTYLE
 
 
 PLAYER_NAME = "Player"
@@ -219,13 +220,10 @@ class Enemy(Actor):
                 # TODO: Player damage
                 pass
 
-# (m1 • v1) + (m2 • v2) = (m1 • v1') + (m2 • v2')
-# (momentum1) + (momentum2) = ()
-
 def collide(gameobject, other):
     if gameobject.rect.colliderect(other.rect):
-        collision_tolerance_h = gameobject.rect.h * 0.8
-        collision_tolerance_w = gameobject.rect.w * 0.8
+        collision_tolerance_h = gameobject.rect.h * World.TOLERANCE
+        collision_tolerance_w = gameobject.rect.w * World.TOLERANCE
         
         gameobject_body = gameobject.get_component(ComponentType.BODY)
         other_body = other.get_component(ComponentType.BODY)
@@ -238,13 +236,20 @@ def collide(gameobject, other):
         if abs(up_difference) < collision_tolerance_h and gameobject_body.velocity.y < 0:
             gameobject.rect.y += up_difference
             gameobject_body.v_collision = True
+                        
+            other_body.velocity.y = gameobject_momentum.y / other_body.mass
+            gameobject_body.velocity.y = other_momentum.y / gameobject_body.mass
 
+        
             
         # moving down
         down_difference = other.rect.top - gameobject.rect.bottom
         if abs(down_difference) < collision_tolerance_h and gameobject_body.velocity.y > 0:
             gameobject.rect.y += down_difference
             gameobject_body.v_collision = True
+                
+            other_body.velocity.y = gameobject_momentum.y / other_body.mass
+            gameobject_body.velocity.y = other_momentum.y / gameobject_body.mass
 
         # moving left
         left_difference = other.rect.right - gameobject.rect.left
@@ -252,11 +257,14 @@ def collide(gameobject, other):
             gameobject.rect.x += left_difference
             gameobject_body.h_collision = True
 
+            other_body.velocity.x = gameobject_momentum.x / other_body.mass
+            gameobject_body.velocity.x = other_momentum.x / gameobject_body.mass
+
         # moving right
         right_difference = other.rect.left - gameobject.rect.right
         if abs(right_difference) < collision_tolerance_w and gameobject_body.velocity.x > 0:
             gameobject.rect.x += right_difference
             gameobject_body.h_collision = True
-            
-        other_body.velocity = gameobject_momentum / other_body.mass
-        gameobject_body.velocity = other_momentum / gameobject_body.mass
+                    
+            other_body.velocity.x = gameobject_momentum.x / other_body.mass
+            gameobject_body.velocity.x = other_momentum.x / gameobject_body.mass
