@@ -8,7 +8,7 @@ class BouncyGame(GG.Game):
         self.speed_multiplier = 1
         self.style.background = GG.GGSTYLE.BLACK
 
-        for _ in range(50):
+        for _ in range(100):
             self._create_bouncy()
     
         

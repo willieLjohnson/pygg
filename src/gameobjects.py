@@ -91,6 +91,9 @@ class Body(Component):
         self.speed = speed if speed else 3
         self.calculate_mass()
         
+    def update(self):
+        self.position += self.velocity 
+        
     def reset_collisions(self):
         self.h_collision = False
         self.v_collision = False
@@ -103,6 +106,7 @@ class Body(Component):
     
     def die(self):
         self.is_alive = False
+        
         
 # Entities
 class Entity(pygame.sprite.Sprite):
@@ -122,6 +126,7 @@ class Entity(pygame.sprite.Sprite):
         return self.get_component(ComponentType.BODY).is_alive
     
     def update(self):
+        self.get_component(ComponentType.BODY).update()
         self._move()
         self._handle_gameobject_collision()
         self._reset_collisions()
@@ -139,12 +144,12 @@ class Entity(pygame.sprite.Sprite):
     
     def _reset_velocity(self):
         body = self.get_component(ComponentType.BODY)        
-        body.velocity = body.velocity if body.is_frictionless else Vec2(0, 0)
+        body.velocity = body.velocity if body.is_frictionless else Vec2(0,0)
         
     def _move(self):
         body = self.get_component(ComponentType.BODY)
-        self.rect.y += body.velocity.y
-        self.rect.x += body.velocity.x
+        self.rect.y = body.position.y
+        self.rect.x = body.position.x
 
     def _updatesprite(self):
         body = self.get_component(ComponentType.BODY)
@@ -222,8 +227,8 @@ class Enemy(Actor):
 
 def collide(gameobject, other):
     if gameobject.rect.colliderect(other.rect):
-        collision_tolerance_h = gameobject.rect.h * World.TOLERANCE
-        collision_tolerance_w = gameobject.rect.w * World.TOLERANCE
+        collision_tolerance_h = min(gameobject.rect.h, other.rect.h) * World.TOLERANCE
+        collision_tolerance_w = min(gameobject.rect.w, other.rect.w) * World.TOLERANCE
         
         gameobject_body = gameobject.get_component(ComponentType.BODY)
         other_body = other.get_component(ComponentType.BODY)
@@ -234,7 +239,7 @@ def collide(gameobject, other):
         # moving up
         up_difference = other.rect.bottom - gameobject.rect.top
         if abs(up_difference) < collision_tolerance_h and gameobject_body.velocity.y < 0:
-            gameobject.rect.y += up_difference
+            gameobject_body.position.y += up_difference
             gameobject_body.v_collision = True
                         
             other_body.velocity.y = gameobject_momentum.y / other_body.mass
@@ -245,7 +250,7 @@ def collide(gameobject, other):
         # moving down
         down_difference = other.rect.top - gameobject.rect.bottom
         if abs(down_difference) < collision_tolerance_h and gameobject_body.velocity.y > 0:
-            gameobject.rect.y += down_difference
+            gameobject_body.position.y += down_difference
             gameobject_body.v_collision = True
                 
             other_body.velocity.y = gameobject_momentum.y / other_body.mass
@@ -254,7 +259,7 @@ def collide(gameobject, other):
         # moving left
         left_difference = other.rect.right - gameobject.rect.left
         if abs(left_difference) < collision_tolerance_w and gameobject_body.velocity.x < 0:
-            gameobject.rect.x += left_difference
+            gameobject_body.position.x += left_difference
             gameobject_body.h_collision = True
 
             other_body.velocity.x = gameobject_momentum.x / other_body.mass
@@ -263,7 +268,7 @@ def collide(gameobject, other):
         # moving right
         right_difference = other.rect.left - gameobject.rect.right
         if abs(right_difference) < collision_tolerance_w and gameobject_body.velocity.x > 0:
-            gameobject.rect.x += right_difference
+            gameobject_body.position.y += right_difference
             gameobject_body.h_collision = True
                     
             other_body.velocity.x = gameobject_momentum.x / other_body.mass
