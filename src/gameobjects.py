@@ -1,4 +1,5 @@
 from tkinter.font import names
+from turtle import left
 import pygame
 import uuid
 from enum import Enum
@@ -146,8 +147,8 @@ class GameObject(Entity):
     
     def update(self):
         self._update_velocity()
-        self._handle_gameobject_collision()
         self._move()
+        self._handle_gameobject_collision()
         self._handle_friction()
         # self._reset_collisions()
 
@@ -166,8 +167,8 @@ class GameObject(Entity):
             self.is_accelerating = False
             
         self.velocity += self.acceleration
-        self.acceleration.x *= 0.6
-        self.acceleration.y *= 0.6
+        self.acceleration.x *= 0.8
+        self.acceleration.y *= 0.8
         
 
     def _handle_friction(self):
@@ -258,9 +259,10 @@ class Enemy(Actor):
                 pass
             
     
-def collide(gameobject, other):
+def collide(gameobject: GameObject, other: GameObject):
     gameobject_body = gameobject.get_component(ComponentType.BODY)
     other_body = other.get_component(ComponentType.BODY)
+
     
     if gameobject.rect.colliderect(other):
         collision_tolerance_w = (min(gameobject_body.size.x, other_body.size.x) / max(gameobject_body.size.x, other_body.size.x))
@@ -272,8 +274,8 @@ def collide(gameobject, other):
         # moving up
         up_difference = other_body.bottom - gameobject_body.top
         up_tolerance = collision_tolerance_h * abs(other_body.top - gameobject_body.bottom)
-        if abs(up_difference) < up_tolerance and gameobject.velocity.y < 0:
-            gameobject_body.position.y += up_difference
+        if abs(up_difference + gameobject.velocity.y) < up_tolerance and gameobject.velocity.y < 0:
+            gameobject_body.position.y += up_difference 
             gameobject_body.v_collision = True
                         
             other.velocity.y = gameobject_momentum.y / other_body.mass
@@ -281,8 +283,9 @@ def collide(gameobject, other):
             
         # moving down
         down_difference = other_body.top - gameobject_body.bottom
+
         down_tolerance = collision_tolerance_h * abs(other_body.bottom - gameobject_body.top)
-        if abs(down_difference) < down_tolerance  and gameobject.velocity.y > 0:
+        if abs(down_difference + gameobject.velocity.y) < down_tolerance and gameobject.velocity.y > 0:
             gameobject_body.position.y += down_difference
             gameobject_body.v_collision = True
                 
@@ -292,8 +295,9 @@ def collide(gameobject, other):
         # moving left
         left_difference = other_body.right - gameobject_body.left
         left_tolerance = collision_tolerance_w * abs(other_body.left - gameobject_body.right)
-        if abs(left_difference) < left_tolerance and gameobject.velocity.x < 0:
-            gameobject_body.position.x += left_difference
+        
+        if abs(left_difference + gameobject.velocity.x) < left_tolerance and gameobject.velocity.x < 0:
+            gameobject_body.position.x += left_difference 
             gameobject_body.h_collision = True
 
             other.velocity.x = gameobject_momentum.x / other_body.mass
@@ -301,12 +305,10 @@ def collide(gameobject, other):
 
         # moving right
         right_difference = other_body.left - gameobject_body.right
-        right_tolerance = collision_tolerance_w * abs(other_body.right - gameobject_body.left)
-        if abs(right_difference) < right_tolerance and gameobject.velocity.x > 0:
-            gameobject_body.position.x += right_difference
+        right_tolerance = collision_tolerance_w * abs(other_body.right - gameobject_body.left) 
+        if abs(right_difference + gameobject.velocity.x) < right_tolerance and gameobject.velocity.x > 0:
+            gameobject_body.position.x += right_difference 
             gameobject_body.h_collision = True
                     
             other.velocity.x = gameobject_momentum.x / other_body.mass
-            gameobject.velocity.x = other_momentum.x / gameobject_body.mass
-
-        (collision_tolerance_h * up_difference, collision_tolerance_h * down_difference, collision_tolerance_w * left_difference, collision_tolerance_w * right_difference)
+            gameobject.velocity.x = other_momentum.x / gameobject_body.mass 
