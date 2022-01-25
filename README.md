@@ -145,3 +145,62 @@ class BouncyGame(GG.Game):
 
 ```
 
+## Roadmap
+
+
+### spec - Game, ECS, Collision
+
+- [x] Game and loop
+- [x] Components
+  - [x] ID
+  - [x] Body
+  - [x] Stats
+- [x] Entities
+  - [x] Player
+  - [x] Gameobjects
+    - [x] Walls
+    - [x] Actors
+- [x] Systems
+  - [x] Camera
+  - [x] Collision
+
+### v0.0.0 - Physics
+
+
+
+### v0.1.0 - Managers
+
+- [ ] Systems
+- [ ] Scene
+- [ ] Entity
+- [ ] Actors
+- [ ] Sound
+- [ ] Save
+
+### v0.2.0 - Procedural generation
+
+- [ ] ECS
+- [ ] Map
+- [ ] Art
+- [ ] Sound
+
+### v0.3.0 - VFX
+
+- [ ] Particle system
+- [ ] Lights
+- [ ] Post processing
+- [ ] Shaders
+
+### v0.x.0 - TBD...
+
+- [ ] Menus with easy navigation
+- [ ] Prefabs to allow for easily creating entire scenes/objects
+- [ ] Spritesheet and atlas for animations
+- [ ] Sharing and saving seeds
+- [ ] Map building through external tools/files
+- [ ] Parallax scrolling
+- [ ] Build for Web, Mobile, PC, and Mac
+- [ ] Commandline tools
+- [ ] Item pickups and inventory system
+- [ ] Customizable weapons
+- [ ] Achievments
