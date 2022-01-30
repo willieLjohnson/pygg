@@ -1,5 +1,8 @@
 from dataclasses import dataclass
 import pygame
+import pymunk
+import pymunk.pygame_util
+
 
 from . import style
 from . import screen
@@ -10,11 +13,16 @@ class Game:
     name = ""
     gameobjects = pygame.sprite.Group()
     style = style.GGSTYLE()
+    _space: pymunk.Space
+    _draw_options: pymunk.pygame_util.DrawOptions
     
     def __init__(self, name):
         self.name = name
         pygame.init()
         pygame.display.set_caption(name)
+        self._space = pymunk.Space()
+        self._draw_options = pymunk.pygame_util.DrawOptions(screen.main)
+        
         
     def run(self):
         self.clock = pygame.time.Clock()
@@ -37,4 +45,9 @@ class Game:
             if event.type == pygame.QUIT:
                 self.running = False
                 
-        
+    
+    def addobject(self, object):
+        self.gameobjects.addobject(object)
+
+    def addtospace(self, body):
+        self._space.add(body)

@@ -10,6 +10,8 @@ class BouncyGame(GG.Game):
 
         for _ in range(50):
             self._create_bouncy()
+            
+        self.box = GG.Box(self._space, (10, 10), (GG.SCREEN_WIDTH - 10, GG.SCREEN_HEIGHT - 10))
     
         
     def run(self):
@@ -23,19 +25,9 @@ class BouncyGame(GG.Game):
             GG.main.fill(self.style.background) 
             
             self.clock.tick(60)
-            
-            for bouncy in self.gameobjects:
-                bouncy_body =  bouncy.get_component(GG.ComponentType.BODY)
-                bouncy_body.velocity *= self.speed_multiplier
-                if bouncy.rect.right > GG.SCREEN_WIDTH or bouncy.rect.left < 0:
-                    bouncy_body.velocity.x *= -1
-                if bouncy.rect.bottom > GG.SCREEN_HEIGHT or bouncy.rect.top < 0:
-                    bouncy_body.velocity.y *= -1
-                    
+            self._space.debug_draw(self._draw_options)
             self.gameobjects.update()
-            
             self.gameobjects.draw(GG.main)
-            
             pygame.display.update()
 
 

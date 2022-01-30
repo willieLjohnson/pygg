@@ -1,7 +1,5 @@
 import pygame
 
-from src.pygg.src.game import Game
-
 from . import gameobjects
 from . import world
 

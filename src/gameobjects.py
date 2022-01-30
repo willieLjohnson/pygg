@@ -1,10 +1,10 @@
-from tkinter.font import names
-from turtle import left
 import pygame
 import uuid
 from enum import Enum
 from dataclasses import dataclass
-from typing import TypedDict
+from typing import TypedDict, NamedTuple
+import pymunk
+
 
 from . import world
 from . import style
@@ -24,6 +24,14 @@ PLAYER_COLOR = STYLE.WHITE
 ENEMY_COLOR = STYLE.RED
 WALL_COLOR = STYLE.BROWN
 DEATH_COLOR = STYLE.BLACK
+
+class IterableObject(type):
+    def __iter__(cls):
+        return iter(cls.__name__)
+
+class GetAttr(type):
+    def __getitem__(cls, x):
+        return getattr(cls, x)        
 
 class ComponentType(Enum):
     ID = "ID"
@@ -64,12 +72,87 @@ class Stats(Component):
     
     def change_agility(self, amount):
         self.agility += amount
+
+
+@dataclass
+class Shape:
+    body: pymunk.Body
+    shape: pymunk.Shape
+    space: pymunk.Space
+    
+Point = NamedTuple("Point", [('x', float), ('y', float)])
+
+@dataclass
+class Vertices:
+    __metaclass__ = GetAttr
+    
+    left: float
+    top: float
+    right: float
+    bottom: float
+    
+    def get(self, index) -> Point:
+        match index:
+            case 0:
+                return Point(self.left, self.top)
+            case 1:
+                return Point(self.right, self.top)
+            case 2:
+                return Point(self.right, self.bottom)
+            case 3:
+                return Point(self.left, self.bottom)
+            case _:
+                return None
+
+
+@dataclass(unsafe_hash=True)
+class Segment(pymunk.Segment):
+    __metaclass__ = IterableObject
+
+    space: pymunk.Space
+    def __init__(self, body, a, b, radius: float, elasticity: float, friction: float):
+        super().__init__(body, a, b, radius)
+        self.elasticity = elasticity
+        self.friction = friction
+    
+@dataclass    
+class Box:
+    vertices: Vertices
+    segments: list[Segment]
+    thickness: float
+    
+    def __init__(self, space: pymunk.Space, left_top: Point = (10, 10), right_bottom: Point = (690, 230), thickness: float = 2):
+        super().__init__()
+        left, top = left_top
+        right, bottom = right_bottom
+        self.vertices = Vertices(left, top, right, bottom)
+        self.thickness = thickness
+        self.segments = list[Segment]()
+        for i in range(4):
+            segment = Segment(space.static_body, self.vertices.get(i), self.vertices.get((i+1)%4), thickness, 1, 1)
+            self.segments.append(segment)
+            space.add(segment)
+            
+    
+@dataclass
+class Rectangle(Shape):
+    def __init__(self, space: pymunk.Space, position: Point = (10, 10), size: Point = (50, 50)):
+        self.body = pymunk.Body()
+        self.body.position = position
+        
+        self.shape = pymunk.Poly.create_box(self.body, size)
+        self.shape.density = 0.1
+        self.shape.friction = 1
+
+        space.add(self.body, self.shape)
+        self.space = space
+
+        
     
 @dataclass
 class Body(Component):
     type = ComponentType.BODY
     
-    position: Vec2
     size: Vec2
     color: Color
     speed: float
@@ -105,8 +188,8 @@ class Body(Component):
     @property
     def right(self) -> float:
         return self.position.x + self.size.x
-
-        
+    
+    
         
 # Entities
 class Entity(pygame.sprite.Sprite):
