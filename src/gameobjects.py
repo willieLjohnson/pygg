@@ -12,6 +12,7 @@ from . import style
 
 World = world.World
 Vec2 = world.Vec2
+Point = world.Point
 Color = style.Color
 STYLE = style.GGSTYLE
 
@@ -42,6 +43,9 @@ class ComponentType(Enum):
 @dataclass
 class Component:
     type = ComponentType.DEFAULT
+    
+    def update(self):
+        pass
     
 class ComponentDict(TypedDict):
     type: ComponentType
@@ -75,12 +79,15 @@ class Stats(Component):
 
 
 @dataclass
-class Shape:
+class Form:
     body: pymunk.Body
     shape: pymunk.Shape
-    space: pymunk.Space
+    color: pygame.Color
+    size: Vec2
     
-Point = NamedTuple("Point", [('x', float), ('y', float)])
+    def apply_impulse(self, force):
+        self.body.apply_force_at_local_point(force)
+    
 
 @dataclass
 class Vertices:
@@ -104,12 +111,9 @@ class Vertices:
             case _:
                 return None
 
-
 @dataclass(unsafe_hash=True)
 class Segment(pymunk.Segment):
     __metaclass__ = IterableObject
-
-    space: pymunk.Space
     def __init__(self, body, a, b, radius: float, elasticity: float, friction: float):
         super().__init__(body, a, b, radius)
         self.elasticity = elasticity
@@ -135,44 +139,45 @@ class Box:
             
     
 @dataclass
-class Rectangle(Shape):
-    def __init__(self, space: pymunk.Space, position: Point = (10, 10), size: Point = (50, 50)):
+class Rectangle(Form):
+    def __init__(self, space: pymunk.Space, position: Point = (10, 10), size: Point = (50, 50), color: Color = STYLE.WHITE):
         self.body = pymunk.Body()
         self.body.position = position
+        self.color = color
         
         self.shape = pymunk.Poly.create_box(self.body, size)
         self.shape.density = 0.1
         self.shape.friction = 1
+        self.shape.color = color
+        
+        self.size = size
 
         space.add(self.body, self.shape)
         self.space = space
-
         
-    
 @dataclass
 class Body(Component):
     type = ComponentType.BODY
     
+    form: Form
+    position: Vec2
     size: Vec2
     color: Color
-    speed: float
-    mass: float
-    density: float = 1.0
+    speed: float 
+    velocity: Vec2
     
-    is_frictionless: bool = False    
-    
-    def __init__(self, position: Vec2 = None, size: Vec2 = None, color: Color = None):
+    def __init__(self, form: Form, velocity: Vec2 = None):
         super().__init__()
-        self.position = position if position else Vec2()
-        self.size = size if size else Vec2()
-        self.color = color if color else STYLE.STONE
-        self.acceleration = Vec2(0, 0)
-        self.calculate_mass()
+        self.form = form
+        self.position = point_to_vec2(form.body.position)
+        self.size = form.size
+        self.color = form.color
+        self.velocity = Vec2(0, 0) if velocity is None else velocity
         
-
-    def calculate_mass(self):
-        self.mass = (self.size.x * self.size.y) * self.density * World.FRICTION
-
+    def update(self):
+        self.form.apply_impulse((self.velocity[0], -self.velocity[1]))
+        self.position = point_to_vec2(self.form.body.position)
+        
     @property
     def bottom(self) -> float:
         return self.position.y + self.size.y
@@ -199,15 +204,25 @@ class Entity(pygame.sprite.Sprite):
     def __init__(self, name: str):
         super().__init__()
         self.name = name
-        self.components = {ComponentType.ID: uuid.uuid1()}
-        self.acceleration = Vec2(0,0)
-        
-    def set_component(self, component_type, component):
+        self.components = ComponentDict()
+        self.set_component(ComponentType.ID, ID(uuid.uuid4()))  
+
+    def _update_components(self):
+        for component in self.get_components():
+            component.update()
+            
+            
+    def set_component(self, component_type: ComponentType, component: Component):
         self.components[component_type] = component
         
-    def get_component(self, component_type):
+    def get_component(self, component_type: ComponentType) -> Component:
         if component_type in self.components:
             return self.components[component_type]
+        
+    def get_components(self) -> list[Component]:
+        return [self.get_component(key) for key in self.components.keys()]
+            
+        
 
 ## Game Objects
 
@@ -218,40 +233,37 @@ class GameObject(Entity):
     speed: float = 3.0
     
     
-    def __init__(self, game, name, position, size, color, speed, velocity=None):
+    def __init__(self, game, name: str, form: Form, speed: float, velocity: Vec2 = None):
         super().__init__(name)
         self.game = game
         self.name = name
         self.speed = speed
-        self.acceleration = Vec2(0,0)
         self.velocity = velocity if velocity is not None else Vec2(0,0)
-        self.set_component(ComponentType.BODY, Body(position, size, color))
+        body = Body(form, form.color)
+        self.set_component(ComponentType.BODY, body)
         self._updatesprite()
     
     def update(self):
+        self._update_components()
+        self._update_position()
         self._update_velocity()
-        self._move()
-        self._handle_gameobject_collision()
-        self._handle_friction()
+        # self._move()
+        # self._handle_gameobject_collision()
+        # self._handle_friction()
         # self._reset_collisions()
 
-    
+    def _update_position(self):
+        self.position = self.get_component(ComponentType.BODY).position
+            
     def die(self):
         self.is_alive = False
      
     def accelerate(self, direction: Vec2):
-        self.acceleration.x += direction.x * self.speed
-        self.acceleration.y += direction.y * self.speed
+        self.velocity.x += direction.x * self.speed
+        self.velocity.y += direction.y * self.speed
     
     def _update_velocity(self):
-        if abs(self.acceleration.x) > 0 or abs(self.acceleration.y) > 0:
-            self.is_accelerating = True
-        else:
-            self.is_accelerating = False
-            
-        self.velocity += self.acceleration
-        self.acceleration.x *= 0.8
-        self.acceleration.y *= 0.8
+        self.get_component(ComponentType.BODY).velocity = self.velocity
         
 
     def _handle_friction(self):
@@ -341,7 +353,10 @@ class Enemy(Actor):
                 # TODO: Player damage
                 pass
             
-    
+
+def point_to_vec2(point: Point) -> Vec2:
+    return Vec2(point.x, -point.y) 
+
 def collide(gameobject: GameObject, other: GameObject):
     gameobject_body = gameobject.get_component(ComponentType.BODY)
     other_body = other.get_component(ComponentType.BODY)

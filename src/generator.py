@@ -24,3 +24,6 @@ def gen_color():
 
 def gen_vec2(max_x = 1, max_y = 1, min_x = 0, min_y = 0):
     return world.Vec2(gen_range(min_x, max_x), gen_range(min_y, max_y))
+
+def gen_point(max_x = 1, max_y = 1, min_x = 0, min_y = 0):
+    return (gen_range(min_x, max_x), gen_range(min_y, max_y))

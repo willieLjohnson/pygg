@@ -13,14 +13,14 @@ class Game:
     name = ""
     gameobjects = pygame.sprite.Group()
     style = style.GGSTYLE()
-    _space: pymunk.Space
+    space: pymunk.Space
     _draw_options: pymunk.pygame_util.DrawOptions
     
     def __init__(self, name):
         self.name = name
         pygame.init()
         pygame.display.set_caption(name)
-        self._space = pymunk.Space()
+        self.space = pymunk.Space()
         self._draw_options = pymunk.pygame_util.DrawOptions(screen.main)
         
         
@@ -44,10 +44,13 @@ class Game:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
+    
+    def _update_space(self):
+        self.space.step(0.01)
                 
     
     def addobject(self, object):
         self.gameobjects.addobject(object)
 
     def addtospace(self, body):
-        self._space.add(body)
+        self.space.add(body)
