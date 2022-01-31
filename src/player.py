@@ -1,7 +1,7 @@
 import pygame
 
 from . import gameobjects
-from . import world
+from . import structures
 
 GameObject = gameobjects.GameObject
 playerName = gameobjects.PLAYER_NAME
@@ -10,7 +10,7 @@ ComponentType = gameobjects.ComponentType
 Body = gameobjects.Body
 
 
-Vec2 = world.Vec2
+Vec2 = structures.Vec2
 
 class Player(GameObject):
     def __init__(self, game, x, y):

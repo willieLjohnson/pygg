@@ -2,17 +2,19 @@ import pygame
 import uuid
 from enum import Enum
 from dataclasses import dataclass
-from typing import TypedDict, NamedTuple
+from typing import TypedDict
 import pymunk
+import math
 
 
 from . import world
 from . import style
+from . import structures
 
 
 World = world.World
-Vec2 = world.Vec2
-Point = world.Point
+Vec2 = structures.Vec2
+Point = structures.Point
 Color = style.Color
 STYLE = style.GGSTYLE
 
@@ -125,7 +127,7 @@ class Box:
     segments: list[Segment]
     thickness: float
     
-    def __init__(self, space: pymunk.Space, left_top: Point = (10, 10), right_bottom: Point = (690, 230), thickness: float = 2):
+    def __init__(self, space: pymunk.Space, left_top: Point = (10, 10), right_bottom: Point = (690, 230), thickness: float = 2, elasticity: float = 1, friction: float = 1):
         super().__init__()
         left, top = left_top
         right, bottom = right_bottom
@@ -133,21 +135,22 @@ class Box:
         self.thickness = thickness
         self.segments = list[Segment]()
         for i in range(4):
-            segment = Segment(space.static_body, self.vertices.get(i), self.vertices.get((i+1)%4), thickness, 1, 1)
+            segment = Segment(space.static_body, self.vertices.get(i), self.vertices.get((i+1)%4), thickness, elasticity, friction)
             self.segments.append(segment)
             space.add(segment)
             
     
 @dataclass
 class Rectangle(Form):
-    def __init__(self, space: pymunk.Space, position: Point = (10, 10), size: Point = (50, 50), color: Color = STYLE.WHITE):
+    def __init__(self, space: pymunk.Space, position: Point = (10, 10), size: Point = (50, 50), color: Color = STYLE.WHITE, elasticity: float = 1, friction: float = 1):
         self.body = pymunk.Body()
         self.body.position = position
         self.color = color
         
         self.shape = pymunk.Poly.create_box(self.body, size)
         self.shape.density = 0.1
-        self.shape.friction = 1
+        self.shape.friction = friction
+        self.shape.elasticity = elasticity
         self.shape.color = color
         
         self.size = size
@@ -161,6 +164,7 @@ class Body(Component):
     
     form: Form
     position: Vec2
+    rotation: float
     size: Vec2
     color: Color
     speed: float 
@@ -170,13 +174,16 @@ class Body(Component):
         super().__init__()
         self.form = form
         self.position = point_to_vec2(form.body.position)
+        self.rotation = form.body.angle
         self.size = form.size
         self.color = form.color
         self.velocity = Vec2(0, 0) if velocity is None else velocity
         
     def update(self):
-        self.form.apply_impulse((self.velocity[0], -self.velocity[1]))
+        impulse = vec2_to_point(self.velocity)
+        self.form.apply_impulse(impulse)
         self.position = point_to_vec2(self.form.body.position)
+        self.velocity = Vec2(0, 0)
         
     @property
     def bottom(self) -> float:
@@ -251,9 +258,17 @@ class GameObject(Entity):
         # self._handle_gameobject_collision()
         # self._handle_friction()
         # self._reset_collisions()
-
+        
     def _update_position(self):
-        self.position = self.get_component(ComponentType.BODY).position
+        body = self.get_component(ComponentType.BODY)
+        self.rot_center(-body.form.body.angle)
+        self.rect.center = body.position
+        
+    def rot_center(self, angle):
+        rot_image = pygame.transform.rotozoom(self._image, math.degrees(angle), 1)
+        rot_rect = rot_image.get_rect(center=self.rect.center)
+        self.image = rot_image
+        self.rect = rot_rect
             
     def die(self):
         self.is_alive = False
@@ -288,17 +303,18 @@ class GameObject(Entity):
     def _move(self):
         body = self.get_component(ComponentType.BODY)
         body.position += self.velocity
+        position = body.position
+        self.rect.center = position
 
-        self.rect.y = body.position.y
-        self.rect.x = body.position.x
 
     def _updatesprite(self):
         body = self.get_component(ComponentType.BODY)
-        self.image = pygame.Surface([body.size.x, body.size.y])
+        self._image = pygame.Surface([body.size.x, body.size.y])
+        self.image = self._image
         self.image.fill(body.color)
         self.rect = pygame.Rect = self.image.get_rect()
-        self.rect.x = body.position.x
-        self.rect.y = body.position.y
+        position = body.position
+        self.rect.center = position
        
     def _handle_gameobject_collision(self):
         gameobjects = self.game.gameobjects
@@ -355,7 +371,10 @@ class Enemy(Actor):
             
 
 def point_to_vec2(point: Point) -> Vec2:
-    return Vec2(point.x, -point.y) 
+    return Vec2(point[0], point[1]) 
+
+def vec2_to_point(vec2: Vec2) -> Point:
+    return Point(vec2[0], vec2[1])
 
 def collide(gameobject: GameObject, other: GameObject):
     gameobject_body = gameobject.get_component(ComponentType.BODY)

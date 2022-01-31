@@ -1,9 +1,9 @@
 import pygame
 from abc import ABC, abstractmethod
 
-from . import world
+from . import structures
 
-Vec2 = world.Vec2
+Vec2 = structures.Vec2
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600

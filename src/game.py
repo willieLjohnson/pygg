@@ -46,7 +46,7 @@ class Game:
                 self.running = False
     
     def _update_space(self):
-        self.space.step(0.01)
+        self.space.step(1/60)
                 
     
     def addobject(self, object):
