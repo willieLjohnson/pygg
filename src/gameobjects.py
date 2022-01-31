@@ -87,8 +87,14 @@ class Form:
     color: pygame.Color
     size: Vec2
     
+    def __init__(self, body = None, shape = None, color = None, size = None) -> None:
+        self.body = body if body else pymunk.Body(1,2)
+        self.shape = shape if shape else pymunk.Shape()
+        self.color = color if color else STYLE.WHITE
+        self.size = size if size else Vec2(10,10)
+        
     def apply_impulse(self, force):
-        self.body.apply_force_at_local_point(force)
+        self.body.apply_impulse_at_world_point(force, self.body.position)
     
 
 @dataclass
@@ -127,7 +133,7 @@ class Box:
     segments: list[Segment]
     thickness: float
     
-    def __init__(self, space: pymunk.Space, left_top: Point = (10, 10), right_bottom: Point = (690, 230), thickness: float = 2, elasticity: float = 1, friction: float = 1):
+    def __init__(self, space: pymunk.Space, left_top: Point = (10, 10), right_bottom: Point = (690, 230), thickness: float = 2, elasticity: float = 0, friction: float = 1):
         super().__init__()
         left, top = left_top
         right, bottom = right_bottom
@@ -142,12 +148,12 @@ class Box:
     
 @dataclass
 class Rectangle(Form):
-    def __init__(self, space: pymunk.Space, position: Point = (10, 10), size: Point = (50, 50), color: Color = STYLE.WHITE, elasticity: float = 1, friction: float = 1):
+    def __init__(self, space: pymunk.Space, position: Vec2 = (10, 10), size: Vec2 = (50, 50), color: Color = STYLE.WHITE, elasticity: float = 0, friction: float = 1):
         self.body = pymunk.Body()
-        self.body.position = position
+        self.body.position = (position.x, position.y)
         self.color = color
         
-        self.shape = pymunk.Poly.create_box(self.body, size)
+        self.shape = pymunk.Poly.create_box(self.body, (size.x, size.y))
         self.shape.density = 0.1
         self.shape.friction = friction
         self.shape.elasticity = elasticity
@@ -178,16 +184,16 @@ class Body(Component):
         self.size = form.size
         self.color = form.color
         self.velocity = Vec2(0, 0) if velocity is None else velocity
+
         
     def update(self):
-        impulse = vec2_to_point(self.velocity)
-        self.form.apply_impulse(impulse)
+        self.form.apply_impulse((self.velocity[0], self.velocity[1]))
         self.position = point_to_vec2(self.form.body.position)
         self.velocity = Vec2(0, 0)
         
     @property
     def bottom(self) -> float:
-        return self.position.y + self.size.y
+        return self.position.y + self.size.sy
 
     @property
     def top(self) -> float:
@@ -201,7 +207,15 @@ class Body(Component):
     def right(self) -> float:
         return self.position.x + self.size.x
     
-    
+    def limit_velocity(body, gravity, damping, dt):
+        max_velocity = 1000
+        pymunk.Body.update_velocity(body, gravity, damping, dt)
+        l = body.velocity.length
+        if l > max_velocity:
+            scale = max_velocity / l
+            body.velocity = body.velocity * scale
+
+        
         
 # Entities
 class Entity(pygame.sprite.Sprite):
@@ -279,6 +293,7 @@ class GameObject(Entity):
     
     def _update_velocity(self):
         self.get_component(ComponentType.BODY).velocity = self.velocity
+        self.velocity = Vec2(0, 0)
         
 
     def _handle_friction(self):
@@ -327,13 +342,13 @@ class GameObject(Entity):
     
 class Wall(GameObject):
     def __init__(self, game, position, size):
-        super().__init__(game, WALL_NAME, position, size, WALL_COLOR, 0)
+        super().__init__(game, WALL_NAME, Rectangle(game.space, position, size, WALL_COLOR), 0)
     
 ## Actors
 
 class Actor(GameObject):
     def __init__(self, game, name, position, size, color, speed, health, strength, defense, agility):
-        super().__init__(game, name, position, size, color, speed)
+        super().__init__(game, name, Rectangle(game.space, position, size, color), speed)
         self.set_component(ComponentType.STATS, Stats(health, strength, defense, agility))
         
     def update(self):

@@ -8,7 +8,7 @@ class BouncyGame(GG.Game):
         self.speed_multiplier = 1
         self.style.background = GG.GGSTYLE.BLACK
         self.debug = False
-        for _ in range(500):
+        for _ in range(200):
             self._create_bouncy()
             
         self.box = GG.Box(self.space, (10, 10), (GG.SCREEN_WIDTH - 10, GG.SCREEN_HEIGHT - 10), 1, 0)
