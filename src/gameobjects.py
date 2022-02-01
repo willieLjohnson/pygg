@@ -360,10 +360,12 @@ class Decaying(Component):
             self.current = self.start
             
         self.current -= self.clock.get_time()
-        color = self.gameobject.get_component(ComponentType.BODY).color
-        self.gameobject.change_color((color[0], color[1], color[2], 255 * (self.current / self.start)))
         if self.current <= 0:
             self.gameobject.die()
+            
+        color = self.gameobject.get_component(ComponentType.BODY).color
+        decaying_alpha = (255 * (self.current / self.start)) % 255
+        self.gameobject.change_color((color[0], color[1], color[2], decaying_alpha))
 
     
     
@@ -371,14 +373,19 @@ class Wall(GameObject):
     def __init__(self, game, position, size):
         super().__init__(game, WALL_NAME, Rectangle(game.space, position, size, WALL_COLOR), 0)
     
+    
+def zero_damping(body, gravity, damping, dt):
+    pymunk.Body.update_velocity(body, gravity, 1, dt)
 
 class Bullet(GameObject):
     def __init__(self, game, position, size, direction):
-        super().__init__(game, "Bullet", Rectangle(game.space, position, size, STYLE.GREEN, 1, 0), 1000)
+        super().__init__(game, "Bullet", Rectangle(game.space, position, size, STYLE.GREEN, 1, 0), 2000)
         self.accelerate(direction)
         self.set_component(ComponentType.DECAYING, Decaying(self, 10000, game.clock, True))
-    
         
+
+        self.get_component(ComponentType.BODY).form.body.velocity_func = zero_damping
+       
 ## Actors
 
 class Actor(GameObject):
