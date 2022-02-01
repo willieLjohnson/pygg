@@ -41,6 +41,7 @@ class ComponentType(Enum):
     DEFAULT = "DEFAULT"
     STATS = "STATS"
     BODY = "BODY"
+    DECAYING = "DECAYING"
     
 @dataclass
 class Component:
@@ -78,6 +79,7 @@ class Stats(Component):
     
     def change_agility(self, amount):
         self.agility += amount
+
 
 
 @dataclass
@@ -243,7 +245,7 @@ class Entity(pygame.sprite.Sprite):
     def get_components(self) -> list[Component]:
         return [self.get_component(key) for key in self.components.keys()]
             
-        
+
 
 ## Game Objects
 
@@ -292,8 +294,10 @@ class GameObject(Entity):
         self.velocity.y += direction.y * self.speed
     
     def _update_velocity(self):
-        self.get_component(ComponentType.BODY).velocity = self.velocity
+        body = self.get_component(ComponentType.BODY)
+        body.velocity = self.velocity
         self.velocity = Vec2(0, 0)
+        
         
 
     def _handle_friction(self):
@@ -314,6 +318,7 @@ class GameObject(Entity):
         body = self.get_component(ComponentType.BODY)
         body.color = new_color
         self.image.fill(new_color)
+        self._image.fill(new_color)
             
     def _move(self):
         body = self.get_component(ComponentType.BODY)
@@ -338,12 +343,42 @@ class GameObject(Entity):
                 continue
             
             collide(self, gameobject)
-        
+       
+@dataclass
+class Decaying(Component):
+    type = ComponentType.DECAYING
+    
+    gameobject: GameObject
+    start: float
+    clock: pygame.time.Clock
+    is_decaying: bool = False
+    current: float = None
+
+
+    def update(self):
+        if self.current is None:
+            self.current = self.start
+            
+        self.current -= self.clock.get_time()
+        color = self.gameobject.get_component(ComponentType.BODY).color
+        self.gameobject.change_color((color[0], color[1], color[2], 255 * (self.current / self.start)))
+        if self.current <= 0:
+            self.gameobject.die()
+
+    
     
 class Wall(GameObject):
     def __init__(self, game, position, size):
         super().__init__(game, WALL_NAME, Rectangle(game.space, position, size, WALL_COLOR), 0)
     
+
+class Bullet(GameObject):
+    def __init__(self, game, position, size, direction):
+        super().__init__(game, "Bullet", Rectangle(game.space, position, size, STYLE.GREEN, 1, 0), 1000)
+        self.accelerate(direction)
+        self.set_component(ComponentType.DECAYING, Decaying(self, 10000, game.clock, True))
+    
+        
 ## Actors
 
 class Actor(GameObject):

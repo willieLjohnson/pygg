@@ -26,9 +26,9 @@ class Game:
         
     def run(self):
         self.clock = pygame.time.Clock()
-        self.running = True
+        self.running = 1
 
-        while self.running:
+        while self.running == 1:
             self.clock.tick(60)
             self._handle_quit()
             screen.main.fill(style.GGSTYLE.BLACK)
@@ -43,7 +43,7 @@ class Game:
     def _handle_quit(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                self.running = False
+                self.running = 0
     
     def _update_space(self):
         self.space.step(1/60)

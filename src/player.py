@@ -15,6 +15,8 @@ Vec2 = structures.Vec2
 Point = structures.Point
 
 class Player(GameObject):
+    shoot_cooldown = 0
+
     def __init__(self, game, x, y):
         super().__init__(game, playerName, Rectangle(game.space, Point(x,y), Point(15,15), playerColor, 2), 500)
         # self.get_component(ComponentType.BODY).form.body.velocity_func = self.limit_velocity

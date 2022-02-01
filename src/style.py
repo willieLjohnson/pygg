@@ -22,6 +22,7 @@ class Color:
         self.r = RNG.gen_float() * 255
         self.g = RNG.gen_float() * 255
         self.b = RNG.gen_float() * 255
+        self.a = RNG.gen_float() * 255
         
         return (self.r, self.g, self.b, self.a)
     
