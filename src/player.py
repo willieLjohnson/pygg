@@ -1,6 +1,8 @@
 import pygame
 import pymunk
 
+from dataclasses import dataclass
+
 from . import gameobjects
 from . import structures
 
@@ -14,20 +16,57 @@ Rectangle = gameobjects.Rectangle
 Vec2 = structures.Vec2
 Point = structures.Point
 
+@dataclass
+class Weapon:
+    damage: float
+    fire_rate: float
+    bullet_speed: float
+    damping: float
+    _clock: pygame.time.Clock
+    _can_fire: bool = False
+    _cooldown: float = 0
+
+
+    def update(self):
+        self._cooldown -= self._clock.get_time()
+        if self._cooldown <= 0:
+            self._can_fire = True
+        
+    def fire(self):
+        if self._can_fire:
+            self._cooldown = self.fire_rate
+            self._can_fire = False
+
+    
 class Player(GameObject):
-    shoot_cooldown = 0
+    weapon: Weapon
+    focusing: bool = False
+    focus_angle: float = 0
 
     def __init__(self, game, x, y):
-        super().__init__(game, playerName, Rectangle(game.space, Point(x,y), Point(15,15), playerColor, 2), 500)
-        # self.get_component(ComponentType.BODY).form.body.velocity_func = self.limit_velocity
+        super().__init__(game, playerName, Rectangle(game.space, Point(x,y), Point(15,15), playerColor,0, 20), 2500)
+        self.weapon = Weapon(1, 75, 20000, 1, game.clock, True, 0)
+        
+        
 
     
     def update(self):
-        super().update()
+        super().update()    
+        self.weapon.update()
         self._handle_enemy_collision()
         body = self.get_component(ComponentType.BODY)
         angle = structures.angleof(body.form.body.velocity[0], -body.form.body.velocity[1]) 
-        body.form.body.angle = angle
+        if self.focusing:
+            if body.form.shape.friction == 10000:
+                body.form.shape.friction = 1 
+            body.form.body.angle = self.focus_angle
+        else:
+            if body.form.shape.friction == 1:
+                body.form.shape.friction = 10000 
+            body.form.body.angle = angle
+            self.focus_angle = angle
+
+            
 
         
     def _handle_enemy_collision(self):
@@ -43,3 +82,10 @@ class Player(GameObject):
         if l > max_velocity:
             scale = max_velocity / l
             body.velocity = body.velocity * scale
+       
+    def shoot(self):
+        self.weapon.fire()
+        
+    @property     
+    def can_shoot(self) -> bool:
+        return self.weapon._can_fire

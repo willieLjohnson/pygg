@@ -10,6 +10,7 @@ import math
 from . import world
 from . import style
 from . import structures
+from . import generator
 
 
 World = world.World
@@ -156,7 +157,7 @@ class Rectangle(Form):
         self.color = color
         
         self.shape = pymunk.Poly.create_box(self.body, (size.x, size.y))
-        self.shape.density = 0.1
+        self.shape.density = 1
         self.shape.friction = friction
         self.shape.elasticity = elasticity
         self.shape.color = color
@@ -364,8 +365,8 @@ class Decaying(Component):
             self.gameobject.die()
             
         color = self.gameobject.get_component(ComponentType.BODY).color
-        decaying_alpha = (255 * (self.current / self.start)) % 255
-        self.gameobject.change_color((color[0], color[1], color[2], decaying_alpha))
+        decaying_alpha = (color[0] * (self.current / self.start)) % 255
+        self.gameobject.change_color((decaying_alpha, color[1], color[2], color[3]))
 
     
     
@@ -378,13 +379,13 @@ def zero_damping(body, gravity, damping, dt):
     pymunk.Body.update_velocity(body, gravity, 1, dt)
 
 class Bullet(GameObject):
-    def __init__(self, game, position, size, direction):
-        super().__init__(game, "Bullet", Rectangle(game.space, position, size, STYLE.GREEN, 1, 0), 2000)
+    def __init__(self, game, position, size, direction, speed):
+        super().__init__(game, "Bullet", Rectangle(game.space, position, size, STYLE.RED, 1, 0), speed)
         self.accelerate(direction)
-        self.set_component(ComponentType.DECAYING, Decaying(self, 10000, game.clock, True))
-        
-
-        self.get_component(ComponentType.BODY).form.body.velocity_func = zero_damping
+        self.set_component(ComponentType.DECAYING, Decaying(self, 1100, game.clock, True))
+        body = self.get_component(ComponentType.BODY)
+        body.form.body.velocity_func = zero_damping
+        body.form.body.angular_velocity = 50 * generator.gen_range(-2, 2)
        
 ## Actors
 
