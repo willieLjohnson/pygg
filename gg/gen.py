@@ -1,6 +1,5 @@
 import random 
 
-import random
 import uuid
 
 from . import style

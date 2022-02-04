@@ -1,7 +1,6 @@
 from dataclasses import dataclass
-from re import A
 
-from . import generator as RNG
+from . import gen
 
 import pygame
 
@@ -19,10 +18,10 @@ class Color:
         return (self.r, self.g, self.b, self.a)
     
     def randomized(self):
-        self.r = RNG.gen_float() * 255
-        self.g = RNG.gen_float() * 255
-        self.b = RNG.gen_float() * 255
-        self.a = RNG.gen_float() * 255
+        self.r = gen.gen_float() * 255
+        self.g = gen.gen_float() * 255
+        self.b = gen.gen_float() * 255
+        self.a = gen.gen_float() * 255
         
         return (self.r, self.g, self.b, self.a)
     

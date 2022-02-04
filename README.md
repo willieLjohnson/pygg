@@ -8,11 +8,11 @@ A modular pygame wrapper that adds ECS, procedural generation, cameras, and phys
 - Modularity using ECS and OOP.
 - Core modules:
     - **Game** - the main class that handles the game loop.
-    - **Generator** - procedural generation.
+    - **Gen** - procedural generation.
     - **Style** - color palette system that allows you to easily change color of the whole game during runtime.
     - **World** - game world configuration.
     - **Screen** - cameras, canvas, screen, and window size.
-    - **Gameobjects** - ecs.
+    - **entities** - ecs.
 
 ## How to use it
 
@@ -73,7 +73,7 @@ Bouncy.Game().run()
 
 # src/__init__.py
 
-from . import bouncygame
+from gg import bouncygame
 
 ```
 
@@ -83,7 +83,7 @@ from . import bouncygame
 # src/bouncygame.py
 
 import pygame
-from . import pygg as GG
+from gg import pygg as GG
 
 class BouncyGame(GG.Game):
     debug = False
@@ -111,11 +111,11 @@ class BouncyGame(GG.Game):
             
             self.clock.tick(60)
             self._update_space()
-            self.gameobjects.update()
+            self.entities.update()
 
             if self.debug:
                 self.space.debug_draw(self._draw_options)
-            self.gameobjects.draw(GG.main)
+            self.entities.draw(GG.main)
             pygame.display.update()
 
 
@@ -128,8 +128,8 @@ class BouncyGame(GG.Game):
         random_speed = GG.gen_range(-100000, 100000)
         random_velocity = GG.gen_vec2(random_speed, random_speed)
         shape = GG.Rectangle(self.space, random_position, GG.Vec2(random_size, random_size), random_color)
-        bouncy = GG.GameObject(self, "bouncy", shape, random_speed, random_velocity)
-        self.gameobjects.add(bouncy)
+        bouncy = GG.Entity(self, "bouncy", shape, random_speed, random_velocity)
+        self.entities.add(bouncy)
         
              
     def _handle_input(self):
@@ -137,7 +137,7 @@ class BouncyGame(GG.Game):
 
         if keys[pygame.K_d]:
             self.debug = not self.debug
-            
+
 ```
 
 ## Roadmap
@@ -152,7 +152,7 @@ class BouncyGame(GG.Game):
   - [x] Stats
 - [x] Entities
   - [x] Player
-  - [x] Gameobjects
+  - [x] entities
     - [x] Walls
     - [x] Actors
 - [x] Systems
@@ -167,7 +167,7 @@ class BouncyGame(GG.Game):
 
 - [ ] Systems
 - [ ] Scene
-- [ ] Entity
+- [ ] Object
 - [ ] Actors
 - [ ] Sound
 - [ ] Save

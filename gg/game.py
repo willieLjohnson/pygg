@@ -5,23 +5,25 @@ import pymunk.pygame_util
 
 
 from . import style
-from . import screen
-
+from . import display
 
 @dataclass
 class Game:
     name = ""
-    gameobjects = pygame.sprite.Group()
+    entities = pygame.sprite.Group()
     style = style.GGSTYLE()
     space: pymunk.Space
     _draw_options: pymunk.pygame_util.DrawOptions
+    screen: display.Screen
     
-    def __init__(self, name):
+    def __init__(self, name, width = 800, height = 600):
         self.name = name
+        self.screen = display.Screen(width, height)
+        
         pygame.init()
         pygame.display.set_caption(name)
         self.space = pymunk.Space()
-        self._draw_options = pymunk.pygame_util.DrawOptions(screen.main)
+        self._draw_options = pymunk.pygame_util.DrawOptions(self.screen)
         self.clock = pygame.time.Clock()
 
 
@@ -29,13 +31,12 @@ class Game:
         self.running = 1
         while self.running == 1:
             self._handle_quit()
-            screen.main.fill(style.GGSTYLE.BLACK)
+            self.screen.clear(self.style.BLACK)
             hello = self.style.FONT.render("hi", False, style.GGSTYLE.GREEN)
-            self.gameobjects.draw(screen.main)
-            screen.main.blit(hello, (screen.SCREEN_WIDTH / 2 - hello.get_rect().w / 2, screen.SCREEN_HEIGHT / 2 - hello.get_rect().h / 2))
+            self.entities.draw(self.screen)
+            self.screen.blit(hello, (self.screen.width / 2 - hello.get_rect().w / 2, self.scree.height / 2 - hello.get_rect().h / 2))
             pygame.display.update()
             self.clock.tick(60)
-
 
         pygame.quit()
         
@@ -50,7 +51,7 @@ class Game:
                 
     
     def addobject(self, object):
-        self.gameobjects.addobject(object)
+        self.entities.addobject(object)
 
     def addtospace(self, body):
         self.space.add(body)

@@ -1,7 +1,7 @@
 import pygame
-import src as GG
+from gg import Game
 
-class BouncyGame(GG.Game):
+class BouncyGame(Game):
     debug = False
     def __init__(self):
         super().__init__('bouncy')
@@ -27,11 +27,11 @@ class BouncyGame(GG.Game):
             
             self.clock.tick(60)
             self._update_space()
-            self.gameobjects.update()
+            self.entities.update()
 
             if self.debug:
                 self.space.debug_draw(self._draw_options)
-            self.gameobjects.draw(GG.main)
+            self.entities.draw(GG.main)
             pygame.display.update()
 
 
@@ -44,8 +44,8 @@ class BouncyGame(GG.Game):
         random_speed = GG.gen_range(-100000, 100000)
         random_velocity = GG.gen_vec2(random_speed, random_speed)
         shape = GG.Rectangle(self.space, random_position, GG.Vec2(random_size, random_size), random_color)
-        bouncy = GG.GameObject(self, "bouncy", shape, random_speed, random_velocity)
-        self.gameobjects.add(bouncy)
+        bouncy = GG.Entity(self, "bouncy", shape, random_speed, random_velocity)
+        self.entities.add(bouncy)
         
              
     def _handle_input(self):

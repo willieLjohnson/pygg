@@ -3,16 +3,15 @@ import pymunk
 
 from dataclasses import dataclass
 
-from . import gameobjects
+from . import ecs
+
+Actor = ecs.Actor
+playerName = ecs.PLAYER_NAME
+playerColor = ecs.PLAYER_COLOR
+ComponentType = ecs.ComponentType
+Rectangle = ecs.Rectangle
+
 from . import structures
-
-GameObject = gameobjects.GameObject
-playerName = gameobjects.PLAYER_NAME
-playerColor = gameobjects.PLAYER_COLOR
-ComponentType = gameobjects.ComponentType
-Rectangle = gameobjects.Rectangle
-
-
 Vec2 = structures.Vec2
 Point = structures.Point
 
@@ -38,7 +37,7 @@ class Weapon:
             self._can_fire = False
 
     
-class Player(GameObject):
+class Player(Actor):
     weapon: Weapon
     focusing: bool = False
     focus_angle: float = 0
@@ -47,14 +46,12 @@ class Player(GameObject):
         super().__init__(game, playerName, Rectangle(game.space, Point(x,y), Point(15,15), playerColor,0, 20), 2500)
         self.weapon = Weapon(1, 75, 20000, 1, game.clock, True, 0)
         
-        
-
     
     def update(self):
         super().update()    
         self.weapon.update()
         self._handle_enemy_collision()
-        body = self.get_component(ComponentType.BODY)
+        body = self.get_body()
         angle = structures.angleof(body.form.body.velocity[0], -body.form.body.velocity[1]) 
         if self.focusing:
             if body.form.shape.friction == 10000:
