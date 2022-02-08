@@ -84,12 +84,12 @@ class Box:
     
 @dataclass
 class Rectangle(Form):
-    def __init__(self, space: pymunk.Space, position: Vec2 = (10, 10), size: Vec2 = (50, 50), color: Color = STYLE.WHITE, elasticity: float = 0, friction: float = 1):
+    def __init__(self, space: pymunk.Space, position: Vec2 = None, size: Vec2 = None, color: Color = STYLE.WHITE, elasticity: float = 0, friction: float = 1):
         self.body = pymunk.Body()
-        self.body.position = (position.x, position.y)
+        self.body.position = (position.x, position.y) if position else (10, 10)
         self.color = color
         
-        self.shape = pymunk.Poly.create_box(self.body, (size.x, size.y))
+        self.shape = pymunk.Poly.create_box(self.body, (size.x, size.y) if size else (50,50))
         self.shape.density = 1
         self.shape.friction = friction
         self.shape.elasticity = elasticity

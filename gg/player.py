@@ -8,49 +8,38 @@ from . import ecs
 Actor = ecs.Actor
 playerName = ecs.PLAYER_NAME
 playerColor = ecs.PLAYER_COLOR
-ComponentType = ecs.ComponentType
+ComponentType = ecs.COMPONENT_TYPE
+Weapon = ecs.Weapon
 Rectangle = ecs.Rectangle
 
 from . import structures
 Vec2 = structures.Vec2
 Point = structures.Point
 
-@dataclass
-class Weapon:
-    damage: float
-    fire_rate: float
-    bullet_speed: float
-    damping: float
-    _clock: pygame.time.Clock
-    _can_fire: bool = False
-    _cooldown: float = 0
 
-
-    def update(self):
-        self._cooldown -= self._clock.get_time()
-        if self._cooldown <= 0:
-            self._can_fire = True
-        
-    def fire(self):
-        if self._can_fire:
-            self._cooldown = self.fire_rate
-            self._can_fire = False
-
-    
+@ecs.created_with([ComponentType.WEAPON])
 class Player(Actor):
-    weapon: Weapon
     focusing: bool = False
     focus_angle: float = 0
 
     def __init__(self, game, x, y):
-        super().__init__(game, playerName, Rectangle(game.space, Point(x,y), Point(15,15), playerColor,0, 20), 2500)
-        self.weapon = Weapon(1, 75, 20000, 1, game.clock, True, 0)
-        
+        super().__init__(playerName)    
+        self.game = game
+        rectangle = Rectangle(game.space, Vec2(x,y), Vec2(15,15), game.style.RED)
+        self.body = ecs.Body(self.id, rectangle)
+        self.weapon = ecs.Weapon(self.id, 1, 50, 2000, 1, game.clock, True, 0)
+        self.accelerator = ecs.Accelerator(self.id, 0, 2000)
+        self._set_body(self.body)
+        self._set_weapon(self.weapon)
+        self._set_accelerator(self.accelerator)
+        self._update_sprite()
+
     
     def update(self):
-        super().update()    
-        self.weapon.update()
-        self._handle_enemy_collision()
+        super().update()
+        weapon = self.get_weapon()    
+        weapon.update()
+        # self._handle_enemy_collision()
         body = self.get_body()
         angle = structures.angleof(body.form.body.velocity[0], -body.form.body.velocity[1]) 
         if self.focusing:
@@ -81,8 +70,8 @@ class Player(Actor):
             body.velocity = body.velocity * scale
        
     def shoot(self):
-        self.weapon.fire()
+        self.get_weapon().fire()
         
     @property     
     def can_shoot(self) -> bool:
-        return self.weapon._can_fire
+        return self.get_weapon()._can_fire

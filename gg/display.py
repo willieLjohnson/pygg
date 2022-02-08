@@ -1,4 +1,3 @@
-from turtle import width
 import pygame
 from dataclasses import dataclass
 
@@ -31,7 +30,6 @@ class Screen:
         
     def draw(self, entity):
         self.canvas.blit(entity.image, (entity.rect.x - self.camera.offset.x, entity.rect.y - self.camera.offset.y))
-
 
     
     def update(self):

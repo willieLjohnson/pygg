@@ -189,7 +189,7 @@ class BouncyGame(GG.Game):
 ### v0.x.0 - TBD...
 
 - [ ] Menus with easy navigation
-- [ ] Prefabs to allow for easily creating entire scenes/objects
+- [ ] Prefabs to allow for easily creating entire scenes/entities
 - [ ] Spritesheet and atlas for animations
 - [ ] Sharing and saving seeds
 - [ ] Map building through external tools/files
