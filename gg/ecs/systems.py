@@ -1,52 +1,49 @@
 import pygame
 import math
+import uuid
 
 from dataclasses import dataclass
-from typing import List 
+from typing import List, Type
 
 
 from . import entities
-from . import components
-from . import constants
+from . import physics
 from .. import structures
 
-Entity = entities.Entity
-Component = components.Component
-ComponentType = components.Type
-IDtoTypeComponentListDict = components.IDtoTypeComponentListDict
-TypeComponentListDict = components.TypeComponentListDict
-
-Type = constants.SYSTEM_TYPE
+_Entity = entities.Entity
+_Component = entities.Component
+_Body = entities.Body
+_Accelerator = entities.Accelerator
 
 @dataclass
 class System:
-    component_types: List[ComponentType]
-    _entities: List[Entity]
-    _id_to_type_components_dict: IDtoTypeComponentListDict
+    component_classes: List[Type[_Component]]
+    _entity_to_components: dict[uuid.UUID, List[_Component]]
 
     
-    def __init__(self, component_types, entites = None):
-        self.component_types = component_types
-        self._id_to_type_components_dict = IDtoTypeComponentListDict()
+    def __init__(self, component_classes, entites = None):
+        self.component_classes = component_classes
+        self._entity_to_components = {}
         self._entities = list()
 
         if entites is not None:
             for entity in entites:
                 self.add(entity)
     
-    def add(self, entity: Entity) -> None:
-        for component_type in self.component_types:
-            component = entity.get_component(component_type)
+    def add(self, entity: _Entity) -> None:
+        components_to_add = dict()
+        for component_class in self.component_classes:
+            component = entity.get_component(component_class)
     
             if component is None: 
-                return
-
-            self._entities.append(entity)
-            type_component_list_dict = TypeComponentListDict() 
-            type_component_list_dict[component_type] = component
-            self._id_to_type_components_dict[entity.id] = type_component_list_dict
+                return 
+            
+            components_to_add[component_class.__name__] = component
+            
+        self._entities.append(entity)
+        self._entity_to_components[entity.id] = components_to_add
         
-    def remove(self, entity: Entity) -> None:
+    def remove(self, entity: _Entity) -> None:
         if entity in self._entities:
             self._entities.remove(entity)
 
@@ -59,36 +56,47 @@ class System:
 @dataclass
 class PhysicsSystem(System):
     def __init__(self, entities=None):
-        super().__init__([ComponentType.BODY, ComponentType.ACCELERATOR], entities)
+        super().__init__([_Body, _Accelerator], entities)
         
     def update(self, delta) -> None:
         for entity in self._entities:
-            self._update_position(entity, delta)
-            self._update_velocity(entity, delta)
+            self._update_entitiy(entity, delta)
+
             
     def _update_position(self, entity, delta) -> None:
-        components = self._id_to_type_components_dict[entity.id]
-        body = components.get(ComponentType.BODY)
+        components = self._entity_to_components[entity.id]
+        body = components.get(_Body)
         if body is None: return
-        
-        entity._rot_center(-body.form.body.angle)
-        entity.rect.center = body.position
-        body.update(delta)
+
+
 
     
-    def _update_velocity(self, entity, delta) -> None:
-        components = self._id_to_type_components_dict.get(entity.id)
+    def _update_entitiy(self, entity, delta) -> None:
+        components = self._entity_to_components.get(entity.id)
 
 
-        body = components.get(ComponentType.BODY)
-        accelerator = components.get(ComponentType.ACCELERATOR)
-        
+        body = components.get(_Body.__name__)
+        accelerator = components.get(_Accelerator.__name__)
+        # print(f"\n\nupdate velocity: {entity.name}")
+        # print(f"\n\ncomponents: {components}")
+        # print(f"body is none: {body is None}")
+        # print(f"accelerator is None: {accelerator is None}\n\n")
         if body is None or accelerator is None: return
         
-        body.velocity = accelerator.acceleration
+        acceleration = accelerator.acceleration
+        direction = accelerator.direction
         
+        if direction is not None and acceleration > 0: 
+            body.form.apply_impulse((direction.x * acceleration, direction.y * acceleration))
+            direction = None
+        body.position = physics.point_to_vec2(body.form.body.position)
+            
+        entity._rot_center(-body.form.body.angle)
+        entity.rect.center = body.position
+
         accelerator.update(delta)
-        body.update(delta)
+        entity.update()
+
     
     def _handle_friction(self, entity):
         body = entity.get_body()

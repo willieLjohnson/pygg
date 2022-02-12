@@ -1,5 +1,4 @@
 from .actors import *
-from .constants import *
 from .components import *
 from .defaults import *
 from .entities import *

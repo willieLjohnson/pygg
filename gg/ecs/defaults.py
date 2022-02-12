@@ -1,4 +1,5 @@
 from ...gg import style
+from typing import NamedTuple
 
 STYLE = style.GGSTYLE
 
@@ -10,3 +11,4 @@ PLAYER_COLOR = STYLE.WHITE
 ENEMY_COLOR = STYLE.RED
 WALL_COLOR = STYLE.BROWN
 DEATH_COLOR = STYLE.BLACK
+

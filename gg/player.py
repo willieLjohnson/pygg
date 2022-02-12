@@ -8,7 +8,6 @@ from . import ecs
 Actor = ecs.Actor
 playerName = ecs.PLAYER_NAME
 playerColor = ecs.PLAYER_COLOR
-ComponentType = ecs.COMPONENT_TYPE
 Weapon = ecs.Weapon
 Rectangle = ecs.Rectangle
 
@@ -17,7 +16,7 @@ Vec2 = structures.Vec2
 Point = structures.Point
 
 
-@ecs.created_with([ComponentType.WEAPON])
+@ecs.generate_component_classmethods(Weapon)
 class Player(Actor):
     focusing: bool = False
     focus_angle: float = 0
@@ -26,19 +25,18 @@ class Player(Actor):
         super().__init__(playerName)    
         self.game = game
         rectangle = Rectangle(game.space, Vec2(x,y), Vec2(15,15), game.style.RED)
-        self.body = ecs.Body(self.id, rectangle)
-        self.weapon = ecs.Weapon(self.id, 1, 50, 2000, 1, game.clock, True, 0)
-        self.accelerator = ecs.Accelerator(self.id, 0, 2000)
-        self._set_body(self.body)
-        self._set_weapon(self.weapon)
-        self._set_accelerator(self.accelerator)
+        self._set_body(rectangle, Vec2(x,y), 0, Vec2(15,15), playerColor, Vec2(0,0))
+        self._set_weapon(1, 50, 2000, 1, game.clock)
+        self._set_accelerator(0, 20000)
+        print(f"\n\nPlayer\nComponents: {self.get_components()}")
+        print(f"Body: {self.get_body()}\n\n")
         self._update_sprite()
 
     
     def update(self):
         super().update()
-        weapon = self.get_weapon()    
-        weapon.update()
+        # weapon = self.get_weapon()    
+        # weapon.update()
         # self._handle_enemy_collision()
         body = self.get_body()
         angle = structures.angleof(body.form.body.velocity[0], -body.form.body.velocity[1]) 
@@ -53,7 +51,6 @@ class Player(Actor):
             self.focus_angle = angle
 
             
-
         
     def _handle_enemy_collision(self):
         enemies_hit = pygame.sprite.spritecollide(self, self.game.enemies, False)
@@ -74,4 +71,4 @@ class Player(Actor):
         
     @property     
     def can_shoot(self) -> bool:
-        return self.get_weapon()._can_fire
+        return self.get_weapon().can_fire

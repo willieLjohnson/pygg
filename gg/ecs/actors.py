@@ -11,22 +11,18 @@ Color = style.Color
 from .. import world
 World = world.World
 
-from . import constants
-ComponentType = constants.COMPONENT_TYPE
-
 from . import defaults
 from . import entities
+Body = entities.Body
+Accelerator = entities.Accelerator
+Weapon = entities.Weapon
 
 from . import physics
 Form = physics.Form
 Rectangle = physics.Rectangle
 
-
-@entities.created_with([ComponentType.BODY, ComponentType.ACCELERATOR])
+@entities.generate_component_classmethods(Body, Accelerator)
 class Actor(entities.Entity):
-    def update(self):
-        super().update()
-        
     def move(self, direction):
         self._accelerate(direction)
         
@@ -40,7 +36,7 @@ class Actor(entities.Entity):
 class NPC(Actor):
     def __init__(self, game, name, position, size, color, speed, health, strength, defense, agility):
         super().__init__(game, name, Rectangle(game.space, position, size, color), speed)
-        self._set_stats(health, strength, defense, agility)
+        self._set_Stats(health, strength, defense, agility)
         
     def update(self):
         super().update()
@@ -52,6 +48,7 @@ class NPC(Actor):
         self._hurt(amount)
         # TODO: Timer that has shows damage animation effect
 
+@entities.generate_component_classmethods(Weapon)
 class Enemy(NPC):
     def __init__(self, game, position, size):
         super().__init__(game, defaults.ENEMY_NAME, position, size, defaults.ENEMY_COLOR, 3, 100, 1, 1, 1)

@@ -3,52 +3,25 @@ import pymunk
 import pygame
 
 from dataclasses import dataclass
-from typing import TypedDict, List
 
 from ..style import Color
 from ..structures import Vec2
-
-from . import constants
 
 from . import physics
 Form = physics.Form
 point_to_vec2 = physics.point_to_vec2
 
 
-Type = constants.COMPONENT_TYPE
 
-@dataclass
 class Component:
-    type = Type.DEFAULT
     entity_id: uuid.UUID
-  
     def update(self, delta) -> None: pass
     
-
-class TypeComponentDict(TypedDict):
-    type: Type
-    component: Component
-
-ComponentList = List[Component]
-class TypeComponentListDict(TypedDict):
-    type: Type
-    components: ComponentList
+    @property
+    def class_name(self):
+        return self.__class__.__name__
     
-class IdComponentListDict(TypedDict):
-    id: uuid.UUID
-    components: ComponentList
-    
-class IDtoTypeComponentListDict(TypedDict):
-    id: uuid.UUID
-    type_to_components: TypeComponentListDict
-
-    
-
-
-@dataclass
-class Stats(Component):
-    type = Type.STATS
-    
+class Stats(Component):    
     health: int
     strength: int
     defense: int
@@ -72,49 +45,50 @@ class Stats(Component):
 
 @dataclass
 class Accelerator(Component):
-    acceleration: Vec2
+    acceleration: float
     max_acceleration: float 
+    direction: Vec2 = None
+    
+    def __init__(self, acceleration = 0, max_acceleration = 0, direction = None):
+        self.acceleration = acceleration
+        self.max_acceleration = max_acceleration
+        if direction:
+            self.direction = direction
     
     def update(self, delta):
         self.decelerate(delta)
 
     def decelerate(self, delta):
-        self.acceleration *= 0.1 * delta
+        self.acceleration = 0
+        self.direction = None
         
-    def accelerate(self, direction: Vec2, delta):
-        if self.acceleration.length() > self.max_acceleration: return 
-        self.acceleration.x += direction.x * self.max_acceleration * delta
-        self.acceleration.y += direction.y * self.max_acceleration * delta
+    def accelerate(self, direction: Vec2):
+        self.direction = direction
+        if self.acceleration > self.max_acceleration: return 
+        self.acceleration = 0.1 * self.max_acceleration
         
 @dataclass
 class Body(Component):
-    type = Type.BODY
-    
     form: Form
     position: Vec2
     rotation: float
     size: Vec2
     color: Color
-    velocity: Vec2
+    velocity: Vec2 = None
     
-    def __init__(self, entity_id, form: Form, velocity: Vec2 = None):
-        super().__init__(entity_id)
+    
+    def __init__(self, entity_id, form, position, rotation, size, color, velocity = None): 
+        self.entity_id = entity_id
         self.form = form
-        self.position = point_to_vec2(form.body.position)
-        self.rotation = form.body.angle
-        self.size = form.size
-        self.color = form.color
-        self.velocity = Vec2(0, 0) if velocity is None else velocity
+        self.position = position
+        self.rotation = rotation
+        self.size = size
+        self.color = color
+        self.velocity = velocity if velocity else Vec2(0,0)
 
-        
-    def update(self, delta):
-        self.form.apply_impulse((self.velocity[0], self.velocity[1]))
-        self.position = point_to_vec2(self.form.body.position)
-        self.velocity = Vec2(0, 0)
-        
     @property
     def bottom(self) -> float:
-        return self.position.y + self.size.sy
+        return self.position.y + self.size.y
 
     @property
     def top(self) -> float:
@@ -138,8 +112,6 @@ class Body(Component):
 
 @dataclass
 class Decaying(Component):    
-    type = Type.DECAYING
-    
     entity = None
     start: float
     clock: pygame.time.Clock
@@ -172,17 +144,27 @@ class Weapon(Component):
     fire_rate: float
     bullet_speed: float
     damping: float
-    _clock: pygame.time.Clock
-    _can_fire: bool = False
-    _cooldown: float = 0
+    clock: pygame.time.Clock
+
+    can_fire: bool = False
+    cooldown: float = 0
+    
+    def __init__(self, entity_id, damage, fire_rate, bullet_speed, damping, clock):
+        self.entity_id = entity_id
+        self.damage = damage
+        self.fire_rate = fire_rate
+        self.bullet_speed = bullet_speed
+        self.damping = damping
+        self.clock = clock
 
 
     def update(self):
-        self._cooldown -= self._clock.get_time()
-        if self._cooldown <= 0:
-            self._can_fire = True
+        self.cooldown -= self.clock.get_time()
+        if self.cooldown <= 0:
+            self.can_fire = True
+            
         
     def fire(self):
-        if self._can_fire:
-            self._cooldown = self.fire_rate
-            self._can_fire = False
+        if self.can_fire:
+            self.cooldown = self.fire_rate
+            self.can_fire = False
