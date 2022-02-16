@@ -21,6 +21,8 @@ class Screen:
     
     camera = None
     
+    grid = None
+    
     def __init__(self, width = None, height = None, camera = None):
         self.width = width if width else self.WIDTH
         self.height = height if height else self.HEIGHT
@@ -29,17 +31,75 @@ class Screen:
         self.camera = camera
         
     def draw(self, entity):
-        self.canvas.blit(entity.image, (entity.rect.x - self.camera.offset.x, entity.rect.y - self.camera.offset.y))
-
+        if self.camera is not None:
+            self.canvas.blit(entity.image, (entity.rect.x - self.camera.offset.x, entity.rect.y - self.camera.offset.y))
+        else:
+            self.canvas.blit(entity.image, (entity.rect.x, entity.rect.y))
+        
     
+    def draw_entities(self, entities):
+        entities.draw(self.canvas)
+        
+    def drawGrid(self):
+        gridWidth = gridHeight = self.width * 2
+        blockSize = gridWidth // 4 #Set the size of the grid block
+
+        countx = gridWidth / blockSize
+        county = gridHeight / blockSize
+
+        if self.grid is None:
+            self.grid = list()
+            for x in range(0, gridWidth, blockSize):
+                for y in range(0, gridHeight, blockSize):
+                    block_x = x - gridWidth / 2
+                    block_y = y - gridHeight / 2
+                    rect = pygame.Surface((blockSize * 0.9999, blockSize * 0.9999)).convert()
+                    self.grid.append((rect, block_x, block_y))
+                    rect.fill(style.GGSTYLE.BLACK) 
+                    self.canvas.blit(rect, (block_x + self.camera.offset.x, block_y - self.camera.offset.y))
+            return
+
+        for i, block in enumerate(self.grid):
+            rect, x, y = block
+            player = self.camera.player
+            velocity = player.get_body().model.body.velocity
+            difference = Vec2(x - self.camera.player.rect.x, y - self.camera.player.rect.y)
+            distance = difference.length()
+
+     
+            self.canvas.blit(rect, (x - self.camera.offset.x, y - self.camera.offset.y))
+        
+            
+            limitX = gridWidth - self.width 
+            limitY = gridHeight - self.height
+
+            
+            newPosition = Vec2(x, y)
+            
+            if velocity[0] > 0 and x < (self.camera.offset.x - limitX):
+                newPosition.x += blockSize * 4
+            
+            if velocity[1] > 0 and y < (self.camera.offset.y - limitY):
+                newPosition.y += blockSize * 4
+            
+            
+            if velocity[0] < 0 and x > (self.camera.offset.x + limitX):
+                newPosition.x -= blockSize * 4
+            
+            if velocity[1] < 0 and y > (self.camera.offset.y + limitY):
+                newPosition.y -= blockSize * 4
+            
+            
+            self.grid[i] = (rect, newPosition.x, newPosition.y)
+
     def update(self):
-        self.display.blit(self.canvas, (0, 0))
         if self.camera:
             self.camera.scroll()
+        self.display.blit(self.canvas, (0, 0))
 
 
     
-    def clear(self, color = style.GGSTYLE.BLACK):
+    def clear(self, color = style.GGSTYLE.STONE):
         self.canvas.fill(color)
 
 class Camera:

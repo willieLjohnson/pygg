@@ -16,9 +16,9 @@ from . import defaults
 class Wall(entities.Entity):
     def __init__(self, game, position, size):
         super().__init__(defaults.WALL_NAME)
-        form = Rectangle(game.space, position, size, defaults.WALL_COLOR)
-        self._set_body(form, position, 0, size, form.color, Vec2(0,0))
-        self._update_sprite()
+        self._set_body(game.space, position, size, defaults.WALL_COLOR, Vec2(0,0))
+        self._update_sprite_with_body()
+    
 
 def zero_damping(body, gravity, damping, dt):
     pymunk.Body.update_velocity(body, gravity, 1, dt)
@@ -30,6 +30,6 @@ class Bullet(entities.Entity):
         self._accelerate(direction)
         self._set_decaying(1100, game.clock, True)
         body = self.get_body()
-        body.form.body.velocity_func = zero_damping
-        body.form.body.angular_velocity = 50 * gen_range(-2, 2)
+        body.model.body.velocity_func = zero_damping
+        body.model.body.angular_velocity = 50 * gen_range(-2, 2)
     

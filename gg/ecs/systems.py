@@ -36,7 +36,7 @@ class System:
             component = entity.get_component(component_class)
     
             if component is None: 
-                return 
+                continue 
             
             components_to_add[component_class.__name__] = component
             
@@ -60,42 +60,29 @@ class PhysicsSystem(System):
         
     def update(self, delta) -> None:
         for entity in self._entities:
-            self._update_entitiy(entity, delta)
+            self._update_components(entity, delta)
 
-            
-    def _update_position(self, entity, delta) -> None:
-        components = self._entity_to_components[entity.id]
-        body = components.get(_Body)
-        if body is None: return
-
-
-
+    def _sync_to_body(self, entity, body):
+        entity.rot_center(body.angle)
+        entity.rect.center = body.position
     
-    def _update_entitiy(self, entity, delta) -> None:
+    def _update_components(self, entity, delta) -> None:
         components = self._entity_to_components.get(entity.id)
-
-
         body = components.get(_Body.__name__)
         accelerator = components.get(_Accelerator.__name__)
-        # print(f"\n\nupdate velocity: {entity.name}")
-        # print(f"\n\ncomponents: {components}")
-        # print(f"body is none: {body is None}")
-        # print(f"accelerator is None: {accelerator is None}\n\n")
-        if body is None or accelerator is None: return
         
-        acceleration = accelerator.acceleration
-        direction = accelerator.direction
-        
-        if direction is not None and acceleration > 0: 
-            body.form.apply_impulse((direction.x * acceleration, direction.y * acceleration))
-            direction = None
-        body.position = physics.point_to_vec2(body.form.body.position)
-            
-        entity._rot_center(-body.form.body.angle)
-        entity.rect.center = body.position
 
-        accelerator.update(delta)
-        entity.update()
+        if accelerator is not None:
+            acceleration = accelerator.acceleration
+            direction = accelerator.direction
+            if direction is not None and acceleration > 0: 
+                body.model.apply_impulse((direction.x * acceleration, direction.y * acceleration))
+        
+            accelerator.update(delta)
+        
+        if body is not None:
+            self._sync_to_body(entity, body)
+
 
     
     def _handle_friction(self, entity):
@@ -107,14 +94,7 @@ class PhysicsSystem(System):
             entity.velocity *= 0.8
         else: 
             entity.velocity = structures.Vec2(0,0)
-    
-     
-    def _rot_center(self, entity, angle):
-        rot_image = pygame.transform.rotozoom(entity._image, math.degrees(angle), 1)
-        rot_rect = rot_image.get_rect(center=entity.rect.center)
-        entity.image = rot_image
-        entity.rect = rot_rect
-           
+   
     def _handle_entity_collision(self, entity):
         for other in self._entities:
             if other.id == entity.id:

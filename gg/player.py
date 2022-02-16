@@ -24,13 +24,10 @@ class Player(Actor):
     def __init__(self, game, x, y):
         super().__init__(playerName)    
         self.game = game
-        rectangle = Rectangle(game.space, Vec2(x,y), Vec2(15,15), game.style.RED)
-        self._set_body(rectangle, Vec2(x,y), 0, Vec2(15,15), playerColor, Vec2(0,0))
+        self._set_body(game.space, Vec2(x,y), Vec2(15,15), game.style.RED, Vec2(0,0))
         self._set_weapon(1, 50, 2000, 1, game.clock)
-        self._set_accelerator(0, 20000)
-        print(f"\n\nPlayer\nComponents: {self.get_components()}")
-        print(f"Body: {self.get_body()}\n\n")
-        self._update_sprite()
+        self._set_accelerator(0, 40000)
+        self._update_sprite_with_body()
 
     
     def update(self):
@@ -39,15 +36,15 @@ class Player(Actor):
         # weapon.update()
         # self._handle_enemy_collision()
         body = self.get_body()
-        angle = structures.angleof(body.form.body.velocity[0], -body.form.body.velocity[1]) 
+        angle = structures.angleof(body.model.body.velocity[0], -body.model.body.velocity[1]) 
         if self.focusing:
-            if body.form.shape.friction == 10000:
-                body.form.shape.friction = 1 
-            body.form.body.angle = self.focus_angle
+            if body.model.shape.friction == 10000:
+                body.model.shape.friction = 1 
+            body.model.body.angle = self.focus_angle
         else:
-            if body.form.shape.friction == 1:
-                body.form.shape.friction = 10000 
-            body.form.body.angle = angle
+            if body.model.shape.friction == 1:
+                body.model.shape.friction = 10000 
+            body.set_angle(angle)
             self.focus_angle = angle
 
             

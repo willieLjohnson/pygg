@@ -1,5 +1,4 @@
 import uuid
-import pymunk
 import pygame
 
 from dataclasses import dataclass
@@ -8,8 +7,8 @@ from ..style import Color
 from ..structures import Vec2
 
 from . import physics
-Form = physics.Form
-point_to_vec2 = physics.point_to_vec2
+Model = physics.Model
+vec2 = physics.vec2
 
 
 
@@ -52,43 +51,58 @@ class Accelerator(Component):
     def __init__(self, acceleration = 0, max_acceleration = 0, direction = None):
         self.acceleration = acceleration
         self.max_acceleration = max_acceleration
-        if direction:
-            self.direction = direction
+        self.direction = direction if direction else Vec2(0,0)
     
     def update(self, delta):
         self.decelerate(delta)
 
     def decelerate(self, delta):
         self.acceleration = 0
-        self.direction = None
+        self.direction = Vec2(0,0)
         
     def accelerate(self, direction: Vec2):
-        self.direction = direction
+        self.direction += direction
         if self.acceleration > self.max_acceleration: return 
         self.acceleration = 0.1 * self.max_acceleration
         
 @dataclass
 class Body(Component):
-    form: Form
-    position: Vec2
-    rotation: float
-    size: Vec2
-    color: Color
-    velocity: Vec2 = None
+    model: Model
+
+    def get_position(self) -> Vec2:
+        return vec2(self.model.body.position)
     
+    def get_size(self) -> Vec2:
+        return vec2(self.model.size)
     
-    def __init__(self, entity_id, form, position, rotation, size, color, velocity = None): 
-        self.entity_id = entity_id
-        self.form = form
-        self.position = position
-        self.rotation = rotation
-        self.size = size
-        self.color = color
-        self.velocity = velocity if velocity else Vec2(0,0)
+    def get_angle(self) -> Vec2:
+        return -self.model.body.angle
+    
+    def set_angle(self, value) -> Vec2:
+        self.model.body.angle = value
+    
+    def get_color(self) -> Color:
+        return self.model.color
+    
+    @property
+    def color(self) -> Color:
+        return self.get_color()
+    
+    @property
+    def angle(self) -> Vec2:
+        return self.get_angle()
+    
+    @property
+    def position(self) -> Vec2:
+        return self.get_position()
+    
+    @property
+    def size(self) -> Vec2:
+        return self.get_size()
 
     @property
     def bottom(self) -> float:
-        return self.position.y + self.size.y
+        return self.position.y + self.model.size.y
 
     @property
     def top(self) -> float:
@@ -100,15 +114,7 @@ class Body(Component):
 
     @property
     def right(self) -> float:
-        return self.position.x + self.size.x
-    
-    def limit_velocity(body, gravity, damping, dt):
-        max_velocity = 1000
-        pymunk.Body.update_velocity(body, gravity, damping, dt)
-        l = body.velocity.length
-        if l > max_velocity:
-            scale = max_velocity / l
-            body.velocity = body.velocity * scale
+        return self.position.x + self.model.size.x
 
 @dataclass
 class Decaying(Component):    
@@ -149,15 +155,6 @@ class Weapon(Component):
     can_fire: bool = False
     cooldown: float = 0
     
-    def __init__(self, entity_id, damage, fire_rate, bullet_speed, damping, clock):
-        self.entity_id = entity_id
-        self.damage = damage
-        self.fire_rate = fire_rate
-        self.bullet_speed = bullet_speed
-        self.damping = damping
-        self.clock = clock
-
-
     def update(self):
         self.cooldown -= self.clock.get_time()
         if self.cooldown <= 0:

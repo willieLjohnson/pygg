@@ -18,7 +18,7 @@ Accelerator = entities.Accelerator
 Weapon = entities.Weapon
 
 from . import physics
-Form = physics.Form
+Model = physics.Model
 Rectangle = physics.Rectangle
 
 @entities.generate_component_classmethods(Body, Accelerator)

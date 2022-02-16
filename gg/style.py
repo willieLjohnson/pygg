@@ -14,14 +14,15 @@ class Color:
     b: int = 255
     a: int = 255
     
+    @property
     def rgb(self):
         return (self.r, self.g, self.b, self.a)
     
-    def randomized(self):
+    def randomized(self, alpha = None):
         self.r = gen.gen_float() * 255
         self.g = gen.gen_float() * 255
         self.b = gen.gen_float() * 255
-        self.a = gen.gen_float() * 255
+        self.a = gen.gen_float() * 255 if alpha is None else alpha
         
         return (self.r, self.g, self.b, self.a)
     
@@ -53,5 +54,5 @@ class GGSTYLE(STYLE):
     YELLOW: Color = (249, 219, 109, 255)
     GREEN: Color = (54, 130, 127, 255)
     NAVY: Color = (70, 77, 119, 255)
-    STONE: Color = (55, 70, 70, 255, 255)
+    STONE: Color = (55, 70, 70, 255)
     FONT_SIZE: int = 1000

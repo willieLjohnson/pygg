@@ -6,9 +6,12 @@ import pymunk.pygame_util
 
 from . import style
 from . import display
+from . import structures
 
-@dataclass
+@dataclass(unsafe_hash=True)
 class Game:
+    __metaclass__ = structures.IterableObject
+    
     name = ""
     entities = pygame.sprite.Group()
     style = style.GGSTYLE()
@@ -23,7 +26,7 @@ class Game:
         pygame.init()
         pygame.display.set_caption(name)
         self.space = pymunk.Space()
-        self._draw_options = pymunk.pygame_util.DrawOptions(self.screen)
+        self._draw_options = pymunk.pygame_util.DrawOptions(self.screen.canvas)
         self.clock = pygame.time.Clock()
 
 

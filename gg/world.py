@@ -4,7 +4,7 @@ from dataclasses import dataclass
 class World:
     FRICTION = 0.5
     TOLERANCE = 0.8
-    DAMPING = 0.1
+    DAMPING = 0.5
     
 
     

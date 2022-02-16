@@ -21,7 +21,7 @@ Decaying = components.Decaying
 
 
 from . import physics
-Form = physics.Form
+Model = physics.Model
 Rectangle = physics.Rectangle
 
 from .. import structures
@@ -39,6 +39,7 @@ World = world.World
 class Entity(pygame.sprite.Sprite):
     id: uuid.UUID
     name: str 
+
     _components: dict[str, Type[Component]]
     _image: pygame.Surface
     
@@ -48,15 +49,24 @@ class Entity(pygame.sprite.Sprite):
         self.name = name
         self.id = uuid.uuid4()
         self._components = {}
-        self._image = None
-        for component in components:
+        self._create_image((0,0), (0,0,0))
+        print(components)
+        for component in components[0]:
             self.add_component(component)
-
-    def _rot_center(self, angle):
+            
+    def _create_image(self, size: tuple[int, int], color: tuple[0, 0, 0]) -> None:
+        self.image = pygame.Surface(size).convert()
+        self.image.set_colorkey((0,0,0))
+        self.image.fill(color)
+        self.rect = pygame.Rect = self.image.get_rect()
+        self._image = self.image
+            
+    def rot_center(self, angle):
         rot_image = pygame.transform.rotozoom(self._image, math.degrees(angle), 1)
         rot_rect = rot_image.get_rect(center=self.rect.center)
         self.image = rot_image
         self.rect = rot_rect
+        
         
     def _update_components(self):
         for component in self._get_components():
@@ -78,6 +88,11 @@ class Entity(pygame.sprite.Sprite):
               
     def get_components(self) -> dict[str, Type[Component]]:
         return self._components
+    
+
+    @property
+    def center(self) -> Vec2:
+        return Vec2(self.rect.center[0], self.rect.center[1])
     
     @property
     def components_set(self) -> set[Component]:
@@ -108,21 +123,19 @@ def generate_component_classmethods(*component_classes: Component):
         return decorated_class
                 
     def body(entity_class):
-        def _set_body(self: Entity, form, position, rotation, size, color, velocity = None):
-            self.add_component(Body(self.id, form, position, rotation, size, color, velocity))
+        def _set_body(self: Entity, space, position, size, color, velocity = None, elasticity = 0, friction = 1):
+            model = Rectangle(space, position, size, color, elasticity, friction)
+            if velocity: model.apply_impulse(physics.point(velocity))
+            self.add_component(Body(model))
             
-        def _update_sprite(self):
+        def _update_sprite_with_body(self):
             body = self.get_body()
-            self._image = pygame.Surface([body.size.x, body.size.y])
-            self.image = self._image
-            self.image.fill(body.color)
-            self.rect = pygame.Rect = self.image.get_rect()
+            self._create_image((body.size.x, body.size.y), body.color)
             self.rect.center = body.position
-        
+
         def _set_position(self, position):
             body = self.get_body()
-            body.form.body.position = position.x, position.y
-            body.position = position
+            body.model.body.position = position.x, position.y
             self.rect.center = position
             
         def _handle_entity_collision(self):
@@ -142,13 +155,13 @@ def generate_component_classmethods(*component_classes: Component):
 
         def change_color(self, new_color):
             body = self.get_body()
-            body.color = new_color
+            body.model.color = new_color
             self.image.fill(new_color)
             self._image.fill(new_color)
         
             
         setattr(entity_class, "_set_body", _set_body)
-        setattr(entity_class, "_update_sprite", _update_sprite)
+        setattr(entity_class, "_update_sprite_with_body", _update_sprite_with_body)
         setattr(entity_class, "_set_position", _set_position)
         setattr(entity_class, "_handle_entity_collision", _handle_entity_collision)
         setattr(entity_class, "get_body", get_body)
@@ -224,15 +237,15 @@ def generate_component_classmethods(*component_classes: Component):
     return generate
     
 # class Entity(Entity):
-#     def __init__(self, game, name: str, form: Form, speed: float, velocity: Vec2 = None):
+#     def __init__(self, game, name: str, model: Model, speed: float, velocity: Vec2 = None):
 #         super().__init__(name)
 #         self.game = game
 #      ``   self.name = name
 #         self.speed = speed
 #         self.velocity = velocity if velocity is not None else Vec2(0,0)
-#         body = Body(form, form.color)
+#         body = Body(model, model.color)
 #         self._set_body(body)
-#         self._update_sprite()
+#         self._update_sprite_with_body()
         
 
 #     def update(self):

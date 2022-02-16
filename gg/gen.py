@@ -18,8 +18,8 @@ def gen_float():
 def gen_range(min, max):
     return random.uniform(min, max)
 
-def gen_color():
-    return style.Color().randomized()
+def gen_color(alpha = None):
+    return style.Color().randomized(alpha)
 
 def gen_vec2(max_x = 1, max_y = 1, min_x = 0, min_y = 0) -> structures.Vec2:
     return structures.Vec2(gen_range(min_x, max_x), gen_range(min_y, max_y))
