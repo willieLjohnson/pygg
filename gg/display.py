@@ -55,7 +55,7 @@ class Screen:
                     block_y = y - gridHeight / 2
                     rect = pygame.Surface((blockSize * 0.9999, blockSize * 0.9999)).convert()
                     self.grid.append((rect, block_x, block_y))
-                    rect.fill(style.GGSTYLE.BLACK) 
+                    rect.fill(style.GGSTYLE.STONE) 
                     self.canvas.blit(rect, (block_x + self.camera.offset.x, block_y - self.camera.offset.y))
             return
 

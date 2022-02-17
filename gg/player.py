@@ -25,7 +25,7 @@ class Player(Actor):
         super().__init__(playerName)    
         self.game = game
         self._set_body(game.space, Vec2(x,y), Vec2(15,15), game.style.RED, Vec2(0,0))
-        self._set_weapon(1, 50, 2000, 1, game.clock)
+        self._set_weapon(1, 75, 20000, 1, game.clock)
         self._set_accelerator(0, 40000)
         self._update_sprite_with_body()
 
@@ -46,7 +46,7 @@ class Player(Actor):
                 body.model.shape.friction = 10000 
             body.set_angle(angle)
             self.focus_angle = angle
-
+        self.get_weapon().update()
             
         
     def _handle_enemy_collision(self):

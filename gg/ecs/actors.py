@@ -13,30 +13,32 @@ World = world.World
 
 from . import defaults
 from . import entities
-Body = entities.Body
-Accelerator = entities.Accelerator
-Weapon = entities.Weapon
+
+_Body = entities.Body
+_Accelerator = entities.Accelerator
+_Weapon = entities.Weapon
+_Stats = entities.Stats
 
 from . import physics
-Model = physics.Model
-Rectangle = physics.Rectangle
+_Model = physics.Model
+_Rectangle = physics.Rectangle
 
-@entities.generate_component_classmethods(Body, Accelerator)
+@entities.generate_component_classmethods(_Body, _Accelerator, _Stats)
 class Actor(entities.Entity):
     def move(self, direction):
         self._accelerate(direction)
         
     def skip(self, amount: Vec2):
-        self._set_position(self.get_body().position + amount)
+        self._set_position(self.get__Body().position + amount)
 
     def teleport(self, point: Vec2):
         self._set_position(point)
         
-## Actors
+## Actor
 class NPC(Actor):
     def __init__(self, game, name, position, size, color, speed, health, strength, defense, agility):
-        super().__init__(game, name, Rectangle(game.space, position, size, color), speed)
-        self._set_Stats(health, strength, defense, agility)
+        super().__init__(game, name, _Rectangle(game.space, position, size, color), speed)
+        self._set_stats(health, strength, defense, agility)
         
     def update(self):
         super().update()
@@ -48,7 +50,7 @@ class NPC(Actor):
         self._hurt(amount)
         # TODO: Timer that has shows damage animation effect
 
-@entities.generate_component_classmethods(Weapon)
+@entities.generate_component_classmethods(_Weapon)
 class Enemy(NPC):
     def __init__(self, game, position, size):
         super().__init__(game, defaults.ENEMY_NAME, position, size, defaults.ENEMY_COLOR, 3, 100, 1, 1, 1)

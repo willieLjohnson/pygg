@@ -50,8 +50,11 @@ class Entity(pygame.sprite.Sprite):
         self.id = uuid.uuid4()
         self._components = {}
         self._create_image((0,0), (0,0,0))
+        
         print(components)
-        for component in components[0]:
+        for component in components:
+            if not issubclass(Component, type(component)): 
+                continue
             self.add_component(component)
             
     def _create_image(self, size: tuple[int, int], color: tuple[0, 0, 0]) -> None:
@@ -156,8 +159,7 @@ def generate_component_classmethods(*component_classes: Component):
         def change_color(self, new_color):
             body = self.get_body()
             body.model.color = new_color
-            self.image.fill(new_color)
-            self._image.fill(new_color)
+            self._update_sprite_with_body()
         
             
         setattr(entity_class, "_set_body", _set_body)
@@ -207,7 +209,7 @@ def generate_component_classmethods(*component_classes: Component):
         
     def weapon(entity_class):
         def _set_weapon(self: Entity, damage, fire_rate, bullet_speed, damping, clock):
-            self.add_component(Weapon(self.id, damage, fire_rate, bullet_speed, damping, clock))
+            self.add_component(Weapon(damage, fire_rate, bullet_speed, damping, clock))
         
         def get_weapon(self: Entity):
             return self.get_component(Weapon)

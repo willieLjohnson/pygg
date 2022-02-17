@@ -11,15 +11,16 @@ Model = physics.Model
 vec2 = physics.vec2
 
 
-
+@dataclass
 class Component:
-    entity_id: uuid.UUID
+    entity_id = None
     def update(self, delta) -> None: pass
     
     @property
     def class_name(self):
         return self.__class__.__name__
     
+@dataclass    
 class Stats(Component):    
     health: int
     strength: int
