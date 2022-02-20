@@ -13,7 +13,7 @@ class Game:
     __metaclass__ = structures.IterableObject
     
     name = ""
-    entities = pygame.sprite.Group()
+    entities = {}
     style = style.GGSTYLE()
     space: pymunk.Space
     _draw_options: pymunk.pygame_util.DrawOptions
@@ -28,6 +28,8 @@ class Game:
         self.space = pymunk.Space()
         self._draw_options = pymunk.pygame_util.DrawOptions(self.screen.canvas)
         self.clock = pygame.time.Clock()
+        
+        self.particle_effects = {}
 
 
     def run(self):

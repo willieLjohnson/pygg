@@ -24,10 +24,11 @@ class Player(Actor):
     def __init__(self, game, x, y):
         super().__init__(playerName)    
         self.game = game
-        self._set_body(game.space, Vec2(x,y), Vec2(15,15), game.style.RED, Vec2(0,0))
-        self._set_weapon(1, 75, 20000, 1, game.clock)
+        self._set_body(game.space, Vec2(x,y), Vec2(15,15), playerColor, Vec2(0,0))
+        self._set_weapon(1, 75, 10000, 1, game.clock)
         self._set_accelerator(0, 40000)
         self._update_sprite_with_body()
+        self.get_body().model.shape.filter = pymunk.ShapeFilter(1)
 
     
     def update(self):
@@ -51,7 +52,6 @@ class Player(Actor):
         
     def _handle_enemy_collision(self):
         enemies_hit = pygame.sprite.spritecollide(self, self.game.enemies, False)
-
         for enemy in enemies_hit:
             enemy.receiveDamage(10)
     

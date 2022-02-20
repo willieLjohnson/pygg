@@ -1,3 +1,4 @@
+from this import d
 import pygame
 import math
 import uuid
@@ -21,7 +22,7 @@ class System:
     _entity_to_components: dict[uuid.UUID, List[_Component]]
 
     
-    def __init__(self, component_classes, entites = None):
+    def __init__(self, component_classes: List[Type[_Component]], entites = None):
         self.component_classes = component_classes
         self._entity_to_components = {}
         self._entities = list()
@@ -49,8 +50,13 @@ class System:
 
                 
     def update(self, delta) -> None:
-        pass
-            
+        for entity in self._entities:
+            self._update_components(entity, delta)
+
+    def _update_components(self, entity, delta) -> None:
+        components = self._entity_to_components.get(entity.id)
+        for component in components.values():
+            component.update()
  
                 
 @dataclass

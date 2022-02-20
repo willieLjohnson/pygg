@@ -1,4 +1,5 @@
 
+from this import d
 import pygame
 import uuid
 import math
@@ -51,18 +52,21 @@ class Entity(pygame.sprite.Sprite):
         self._components = {}
         self._create_image((0,0), (0,0,0))
         
-        print(components)
         for component in components:
             if not issubclass(Component, type(component)): 
                 continue
             self.add_component(component)
-            
+
     def _create_image(self, size: tuple[int, int], color: tuple[0, 0, 0]) -> None:
-        self.image = pygame.Surface(size).convert()
-        self.image.set_colorkey((0,0,0))
+        self.image = pygame.Surface(size).convert_alpha()
         self.image.fill(color)
         self.rect = pygame.Rect = self.image.get_rect()
         self._image = self.image
+        
+    def _update_image(self, size: tuple[int, int], color: tuple[0, 0, 0]):
+        self._image = pygame.Surface(size).convert_alpha()
+        self._image.fill(color)
+
             
     def rot_center(self, angle):
         rot_image = pygame.transform.rotozoom(self._image, math.degrees(angle), 1)
@@ -159,7 +163,7 @@ def generate_component_classmethods(*component_classes: Component):
         def change_color(self, new_color):
             body = self.get_body()
             body.model.color = new_color
-            self._update_sprite_with_body()
+            self._update_image(body.size, new_color)
         
             
         setattr(entity_class, "_set_body", _set_body)
@@ -196,8 +200,8 @@ def generate_component_classmethods(*component_classes: Component):
             
     
     def decaying(entity_class):
-        def _set_decaying(self: Entity, entity, start, clock, is_decaying=False, current=None):
-            self.add_component(Decaying(entity, start, clock, is_decaying, current))
+        def _set_decaying(self: Entity, start, clock, is_decaying=False, current=None):
+            self.add_component(Decaying(self, start, clock, is_decaying, current))
             
         def get_decaying(self: Entity):
             return self.get_component(Decaying)

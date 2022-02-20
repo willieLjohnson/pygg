@@ -24,7 +24,7 @@ class Vertices:
     right: float
     bottom: float
     
-    def get(self, index) -> Point:
+def get(self, index) -> Point:
         match index:
             case 0:
                 return Point(self.left, self.top)

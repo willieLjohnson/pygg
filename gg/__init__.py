@@ -6,3 +6,4 @@ from .player import *
 from .structures import *
 from .style import *
 from .world import *
+from .particles import *

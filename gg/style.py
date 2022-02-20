@@ -1,10 +1,12 @@
 from dataclasses import dataclass
+from typing import NamedTuple
 
 from . import gen
 
 import pygame
 
 pygame.init()
+
 
 
 @dataclass
@@ -17,6 +19,8 @@ class Color:
     @property
     def rgb(self):
         return (self.r, self.g, self.b, self.a)
+    
+
     
     def randomized(self, alpha = None):
         self.r = gen.gen_float() * 255

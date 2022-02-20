@@ -20,6 +20,9 @@ class Component:
     def class_name(self):
         return self.__class__.__name__
     
+    def update(self):
+        pass
+    
 @dataclass    
 class Stats(Component):    
     health: int
@@ -65,7 +68,10 @@ class Accelerator(Component):
         self.direction += direction
         if self.acceleration > self.max_acceleration: return 
         self.acceleration = 0.1 * self.max_acceleration
-        
+
+    @property
+    def velocity(self) -> Vec2:
+        return Vec2(self.acceleration * self.direction.x, self.acceleration * self.direction.y)
 @dataclass
 class Body(Component):
     model: Model
@@ -84,6 +90,13 @@ class Body(Component):
     
     def get_color(self) -> Color:
         return self.model.color
+    
+    def get_velocity(self) -> Vec2:
+        return self.model.body.velocity
+    
+    @property
+    def velocity(self) -> Vec2:
+        return self.get_velocity()
     
     @property
     def color(self) -> Color:
@@ -122,6 +135,7 @@ class Decaying(Component):
     entity = None
     start: float
     clock: pygame.time.Clock
+    is_dead: bool = False
     is_decaying: bool = False
     current: float = None
     
@@ -132,17 +146,19 @@ class Decaying(Component):
         self.is_decaying = is_decaying
         self.current = current if current else self.start
 
-    def update(self, delta):
+    def update(self):
+        if self.is_dead: return
+        
         if self.current is None:
             self.current = self.start
             
         self.current -= self.clock.get_time()
         if self.current <= 0:
-            self.entity.die()
+            self.is_dead = True
             
         color = self.entity.get_body().color
-        decaying_alpha = (color[0] * (self.current / self.start)) % 255
-        self.entity.change_color((decaying_alpha, color[1], color[2], color[3]))
+        decaying_alpha = (255 * (self.current / self.start)) % 255
+        self.entity.change_color((decaying_alpha, decaying_alpha, decaying_alpha, 255))
 
 
 @dataclass
