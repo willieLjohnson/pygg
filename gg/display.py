@@ -1,3 +1,4 @@
+from turtle import position, width
 import pygame
 from dataclasses import dataclass
 
@@ -7,6 +8,49 @@ from . import structures
 Vec2 = structures.Vec2
 
 from . import style
+from . import ecs
+
+@dataclass
+class Grid:
+    width: int
+    height: int
+    col: int
+    rows: int
+    position: tuple[int, int]
+    surface: pygame.Surface
+    rect: pygame.Rect = None
+    _squares: list = None
+    
+    def update(self):
+        self.rect.x = self.position[0]
+        self.rect.y = self.position[1]
+    
+    def generate_squares(self):
+        square_size = self.square_size
+        coords = [0, 0]
+        self.rect = self.surface.get_rect()
+
+        self._squares = list()
+        for x in range(0, self.col):
+            for y in range(0, self.rows):
+                if (x + y) % 2 == 0:
+                    square = {}
+                    surface = pygame.Surface(square_size).convert_alpha()
+                    surface.fill((10, 10, 10, 100))
+
+                    rect = surface.get_rect()
+                    rect.x = x * square_size[0]
+                    rect.y = y * square_size[1]
+                    square["surface"] = surface
+                    square["rect"] = rect
+                    square["coords"] = (x, y)
+                    self._squares.append(square)
+                    self.surface.blit(surface, (rect.x, rect.y))
+        
+    
+    @property
+    def square_size(self):
+        return (self.width // self.col, self.height // self.rows)
 
 @dataclass
 class Screen:
@@ -22,6 +66,8 @@ class Screen:
     camera = None
     
     grid = None
+    grid_surface = None
+
     
     def __init__(self, width = None, height = None, camera = None):
         self.width = width if width else self.WIDTH
@@ -29,6 +75,24 @@ class Screen:
         self.display = pygame.display.set_mode([width, height])
         self.canvas = pygame.Surface((width, height))
         self.camera = camera
+        self.grids = []
+        self.background_size = width, height
+        self.create_grid_background(width, height)
+        
+    def create_grid_background(self, width, height):
+        col = 2
+        row = 2
+        grid_size = width, height
+        self.background_size = (width * col, height * row)
+        for x in range(0, col):
+            for y in range(0, row):
+                grid = Grid(grid_size[0], grid_size[1], 4, 4, (0, 0), pygame.Surface((grid_size[0], grid_size[1])))
+                grid.generate_squares()
+                grid.position =  x * self.width, y * self.height
+                self.grids.append(grid)
+            
+            
+        
         
     def draw(self, entity):
         if self.camera is not None:
@@ -36,61 +100,52 @@ class Screen:
         else:
             self.canvas.blit(entity.image, (entity.rect.x, entity.rect.y))
         
+    def draw_particle(self, particle):
+        if self.camera is not None:
+            particle_color_factor = ((particle.rad / 5) * 100)
+            pygame.draw.circle(self.canvas, (particle_color_factor % 100, particle_color_factor % 100, particle_color_factor % 100, particle_color_factor % 255), (particle.x - self.camera.offset.x, particle.y - self.camera.offset.y), particle.rad)
+        else:
+            if particle.rad > 0:
+                pygame.draw.circle(self.canvas, ecs.PLAYER_COLOR, (particle.x, particle.y), particle.rad)
+            
+
+        
     
     def draw_entities(self, entities):
         entities.draw(self.canvas)
         
     def drawGrid(self):
-        gridWidth = gridHeight = self.width * 2
-        blockSize = gridWidth // 4 #Set the size of the grid block
-
-        countx = gridWidth / blockSize
-        county = gridHeight / blockSize
-
-        if self.grid is None:
-            self.grid = list()
-            for x in range(0, gridWidth, blockSize):
-                for y in range(0, gridHeight, blockSize):
-                    block_x = x - gridWidth / 2
-                    block_y = y - gridHeight / 2
-                    rect = pygame.Surface((blockSize * 0.9999, blockSize * 0.9999)).convert()
-                    self.grid.append((rect, block_x, block_y))
-                    rect.fill(style.GGSTYLE.STONE) 
-                    self.canvas.blit(rect, (block_x + self.camera.offset.x, block_y - self.camera.offset.y))
-            return
-
-        for i, block in enumerate(self.grid):
-            rect, x, y = block
+        for i, grid in enumerate(self.grids):
+            grid.update()
             player = self.camera.player
             velocity = player.get_body().model.body.velocity
-            difference = Vec2(x - self.camera.player.rect.x, y - self.camera.player.rect.y)
+            difference = Vec2(grid.position[0] - self.camera.player.rect.x, grid.position[1] - self.camera.player.rect.y)
             distance = difference.length()
 
-     
-            self.canvas.blit(rect, (x - self.camera.offset.x, y - self.camera.offset.y))
+        
+            self.canvas.blit(grid.surface, (grid.rect.x - self.camera.offset.x, grid.rect.y - self.camera.offset.y))
         
             
-            limitX = gridWidth - self.width 
-            limitY = gridHeight - self.height
+            limitX = grid.width
+            limitY = grid.height
 
             
-            newPosition = Vec2(x, y)
+            newPosition = [grid.position[0], grid.position[1]]
+
+            if velocity[0] > 0 and newPosition[0] < (self.camera.offset.x - limitX):
+                newPosition[0] += self.background_size[0]
             
-            if velocity[0] > 0 and x < (self.camera.offset.x - limitX):
-                newPosition.x += blockSize * 4
-            
-            if velocity[1] > 0 and y < (self.camera.offset.y - limitY):
-                newPosition.y += blockSize * 4
-            
-            
-            if velocity[0] < 0 and x > (self.camera.offset.x + limitX):
-                newPosition.x -= blockSize * 4
-            
-            if velocity[1] < 0 and y > (self.camera.offset.y + limitY):
-                newPosition.y -= blockSize * 4
+            if velocity[1] > 0 and newPosition[1] < (self.camera.offset.y - limitY):
+                newPosition[1] += self.background_size[1]
             
             
-            self.grid[i] = (rect, newPosition.x, newPosition.y)
+            if velocity[0] < 0 and newPosition[0] > (self.camera.offset.x + limitX):
+                newPosition[0] -= self.background_size[0]
+            
+            if velocity[1] < 0 and newPosition[1] > (self.camera.offset.y + limitY):
+                newPosition[1] -=  self.background_size[1]
+
+            grid.position = newPosition
 
     def update(self):
         if self.camera:
