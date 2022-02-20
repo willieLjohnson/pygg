@@ -1,6 +1,3 @@
-from this import d
-import pygame
-import math
 import uuid
 
 from dataclasses import dataclass
@@ -8,7 +5,6 @@ from typing import List, Type
 
 
 from . import entities
-from . import physics
 from .. import structures
 
 _Entity = entities.Entity

@@ -132,7 +132,8 @@ def generate_component_classmethods(*component_classes: Component):
     def body(entity_class):
         def _set_body(self: Entity, space, position, size, color, velocity = None, elasticity = 0, friction = 1):
             model = Rectangle(space, position, size, color, elasticity, friction)
-            if velocity: model.apply_impulse(physics.point(velocity))
+            if velocity: 
+                model.body.velocity = physics.point(velocity)
             self.add_component(Body(model))
             
         def _update_sprite_with_body(self):
