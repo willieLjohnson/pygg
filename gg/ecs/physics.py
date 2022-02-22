@@ -93,6 +93,23 @@ class Rectangle(Model):
         space.add(self.body, self.shape)
         self.space = space
         
+class Circle(Model):
+    def __init__(self, space: pymunk.Space, position: Vec2 = None, radius: float = 1, color: Color = STYLE.WHITE, elasticity: float = 0, friction: float = 1):
+        self.body = pymunk.Body()
+        self.body.position = point(position) if position else (0, 0)
+        self.color = color
+        
+        
+        self.shape = pymunk.Circle(self.body, radius)
+        self.shape.density = 1
+        self.shape.friction = friction
+        self.shape.elasticity = elasticity
+        self.shape.color = color
+        
+        self.size = Vec2(radius * 2, radius * 2)
+        
+        space.add(self.body, self.shape)
+        self.space = space
         
 def vec2(point: Point) -> Vec2:
     return Vec2(point[0], point[1]) 

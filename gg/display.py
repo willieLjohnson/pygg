@@ -31,20 +31,22 @@ class Grid:
         self.rect = self.surface.get_rect()
 
         self._squares = list()
+        self.surface.fill((15, 15, 15, 120))
         for x in range(0, self.col):
             for y in range(0, self.rows):
                 if (x + y) % 2 == 0:
                     square = {}
                     surface = pygame.Surface(square_size).convert_alpha()
-                    surface.fill((10, 10, 10, 100))
+                    surface.fill((10, 10, 10, 120))
 
                     rect = surface.get_rect()
-                    rect.x = x * square_size[0]
-                    rect.y = y * square_size[1]
+                    rect.x = x * square_size[0] * 0.9
+                    rect.y = y * square_size[1] * 0.9
                     square["surface"] = surface
                     square["rect"] = rect
                     square["coords"] = (x, y)
                     self._squares.append(square)
+
                     self.surface.blit(surface, (rect.x, rect.y))
         
     
@@ -86,9 +88,9 @@ class Screen:
         self.background_size = (width * col, height * row)
         for x in range(0, col):
             for y in range(0, row):
-                grid = Grid(grid_size[0], grid_size[1], 4, 4, (0, 0), pygame.Surface((grid_size[0], grid_size[1])))
+                grid = Grid(grid_size[0], grid_size[1], 3, 3, (0, 0), pygame.Surface((grid_size[0], grid_size[1])))
                 grid.generate_squares()
-                grid.position =  x * self.width, y * self.height
+                grid.position = x * self.width, y * self.height
                 self.grids.append(grid)
             
             
@@ -103,7 +105,7 @@ class Screen:
     def draw_particle(self, particle):
         if self.camera is not None:
             particle_color_factor = ((particle.rad / 5) * 100)
-            pygame.draw.circle(self.canvas, (particle_color_factor % 100, particle_color_factor % 100, particle_color_factor % 100, particle_color_factor % 255), (particle.x - self.camera.offset.x, particle.y - self.camera.offset.y), particle.rad)
+            pygame.draw.circle(self.canvas, (particle_color_factor % 150, particle_color_factor % 110, particle_color_factor % 110, particle_color_factor % 255), (particle.x - self.camera.offset.x, particle.y - self.camera.offset.y), particle.rad)
         else:
             if particle.rad > 0:
                 pygame.draw.circle(self.canvas, ecs.PLAYER_COLOR, (particle.x, particle.y), particle.rad)

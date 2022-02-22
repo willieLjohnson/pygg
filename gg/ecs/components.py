@@ -157,8 +157,8 @@ class Decaying(Component):
             self.is_dead = True
             
         color = self.entity.get_body().color
-        decaying_alpha = (255 * (self.current / self.start)) % 255
-        self.entity.change_color((decaying_alpha, decaying_alpha, decaying_alpha, 255))
+        a = (color[3] * (self.current / self.start)) % 255
+        self.entity.change_color((color[0], color[1],color[2], a))
 
 
 @dataclass

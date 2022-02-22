@@ -1,10 +1,8 @@
-
-from this import d
 import pygame
 import uuid
 import math
 
-from typing import TypeVar, Type
+from typing import Type
 
 
 from . import components
@@ -24,6 +22,8 @@ Decaying = components.Decaying
 from . import physics
 Model = physics.Model
 Rectangle = physics.Rectangle
+Circle = physics.Circle
+
 
 from .. import structures
 Vec2 = structures.Vec2
@@ -130,8 +130,13 @@ def generate_component_classmethods(*component_classes: Component):
         return decorated_class
                 
     def body(entity_class):
-        def _set_body(self: Entity, space, position, size, color, velocity = None, elasticity = 0, friction = 1):
-            model = Rectangle(space, position, size, color, elasticity, friction)
+        def _set_body(self: Entity, space, position, size, color, velocity=None, elasticity=0, friction=1, shape=Rectangle):
+            model = None
+            if shape.__name__ == Rectangle.__name__:
+                model = Rectangle(space, position, size, color, elasticity, friction)
+            else:
+                model = Circle(space, position, size.x, color, elasticity, friction)
+ 
             if velocity: 
                 model.body.velocity = physics.point(velocity)
             self.add_component(Body(model))

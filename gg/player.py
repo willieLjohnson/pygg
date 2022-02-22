@@ -25,7 +25,7 @@ class Player(Actor):
         super().__init__(playerName)    
         self.game = game
         self._set_body(game.space, Vec2(x,y), Vec2(15,15), playerColor, Vec2(0,0))
-        self._set_weapon(1, 75, 10000, 1, game.clock)
+        self._set_weapon(1, 75, 30000, 1, game.clock)
         self._set_accelerator(0, 40000)
         self._update_sprite_with_body()
         self.get_body().model.shape.filter = pymunk.ShapeFilter(1)
