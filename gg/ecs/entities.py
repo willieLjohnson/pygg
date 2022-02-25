@@ -16,9 +16,6 @@ Stats = components.Stats
 Weapon = components.Weapon
 Decaying = components.Decaying
 
-
-
-
 from . import physics
 Model = physics.Model
 Rectangle = physics.Rectangle

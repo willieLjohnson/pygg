@@ -1,3 +1,4 @@
+from re import A
 import pygame
 
 
@@ -37,8 +38,12 @@ class Actor(entities.Entity):
 ## Actor
 class NPC(Actor):
     def __init__(self, game, name, position, size, color, speed, health, strength, defense, agility):
-        super().__init__(game, name, _Rectangle(game.space, position, size, color), speed)
+        super().__init__(name)
+        self.game = game
         self._set_stats(health, strength, defense, agility)
+        self._set_body(game.space, position, size, color, Vec2(0,0))
+        self._set_accelerator(0, speed)
+        self._update_sprite_with_body()
         
     def update(self):
         super().update()
@@ -53,18 +58,49 @@ class NPC(Actor):
 @entities.generate_component_classmethods(_Weapon)
 class Enemy(NPC):
     def __init__(self, game, position, size):
-        super().__init__(game, defaults.ENEMY_NAME, position, size, defaults.ENEMY_COLOR, 3, 100, 1, 1, 1)
+        self._max_acceleration = 100000
+        self.max_acceleration = self._max_acceleration
+        super().__init__(game, defaults.ENEMY_NAME, position, size, defaults.ENEMY_COLOR, self._max_acceleration, 100, 1, 1, 1)
+        self._set_weapon(1, 75, 30000, 1, game.clock)
+        self.targets = pygame.sprite.Group()
+        self.targets.add(game.player)
+        
         
     def update(self):
         super().update()
-        targets = pygame.sprite.Group()
-        targets.add(self.game.player)
-        targets_hit = pygame.sprite.spritecollide(self, targets, False)
-        
-        for target in targets_hit:
+        entities = self.game.entities.values()
+
+        # targets_hit = pygame.sprite.spritecollide(self, self.targets, False)
+        for target in self.targets:
+            if target == self: continue
             if target.name == defaults.PLAYER_NAME:
-                # TODO: Player damage
-                pass
+                pbody = target.get_body()
+                ebody = self.get_body()
+                difference = (pbody.position - ebody.position)
+                normal = difference / difference.length()
+                print(difference, normal)
+                self.move(normal)
+        
+        for entity in entities:
+            if entity == self: continue
+            pbody = entity.get_body()
+            ebody = self.get_body()
+            difference = (pbody.position - ebody.position)
+            normal = difference / difference.length()
+
+            if entity.name == defaults.ENEMY_NAME:
+                if difference.length() < 200:
+                    if difference.length() >= 75:
+                        self.max_acceleration += self._max_acceleration * 0.02
+                    else:
+                        self.max_acceleration += self._max_acceleration * 0.001
+                    self.move(normal * 0.5)
+                    self.get_accelerator().max_acceleration = self.max_acceleration
+                else:
+                    self.max_acceleration = self._max_acceleration
+            else:
+                if difference.length() < 75:
+                    self.move(-normal * 2)
+
+
             
-
-
