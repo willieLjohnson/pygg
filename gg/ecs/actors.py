@@ -79,7 +79,11 @@ class Enemy(NPC):
                 difference = (pbody.position - ebody.position)
                 normal = difference / difference.length()
                 print(difference, normal)
-                self.move(normal)
+                if difference.length() > 1000:
+                    self.move(normal * 10)
+                else:
+                    self.move(normal)
+     
         
         for entity in entities:
             if entity == self: continue
