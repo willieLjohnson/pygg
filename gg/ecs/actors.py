@@ -83,14 +83,15 @@ class Enemy(NPC):
         
         for entity in entities:
             if entity == self: continue
+            
             pbody = entity.get_body()
             ebody = self.get_body()
             difference = (pbody.position - ebody.position)
             normal = difference / difference.length()
 
             if entity.name == defaults.ENEMY_NAME:
-                if difference.length() < 200:
-                    if difference.length() >= 75:
+                if difference.length() < 400:
+                    if difference.length() >= 200:
                         self.max_acceleration += self._max_acceleration * 0.02
                     else:
                         self.max_acceleration += self._max_acceleration * 0.001
@@ -98,9 +99,10 @@ class Enemy(NPC):
                     self.get_accelerator().max_acceleration = self.max_acceleration
                 else:
                     self.max_acceleration = self._max_acceleration
-            else:
-                if difference.length() < 75:
+            elif entity.name == defaults.BULLET_NAME and difference.length() < 75:
                     self.move(-normal * 2)
+            elif difference.length() < 75:
+                    self.move(-normal)
+ 
 
-
-            
+        

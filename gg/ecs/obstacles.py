@@ -28,7 +28,7 @@ def zero_damping(body, gravity, damping, dt):
 @entities.generate_component_classmethods(_Body, _Accelerator, _Decaying)
 class Bullet(entities.Entity):
     def __init__(self, game, position, size, initial_velocity, force):
-        super().__init__("Bullet")
+        super().__init__(defaults.BULLET_NAME)
         self._set_body(game.space, position, size, defaults.PLAYER_COLOR, initial_velocity)
         self._set_decaying(2200, game.clock, True)
         # self._set_accelerator(speed, speed, direction)

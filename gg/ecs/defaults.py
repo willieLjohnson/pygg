@@ -4,6 +4,7 @@ from typing import NamedTuple
 STYLE = style.GGSTYLE
 
 PLAYER_NAME = "Player"
+BULLET_NAME = "Bullet"
 ENEMY_NAME = "Enemy"
 WALL_NAME = "Wall"
 
