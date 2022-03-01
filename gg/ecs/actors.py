@@ -1,4 +1,4 @@
-from re import A
+import random
 import pygame
 
 
@@ -35,6 +35,9 @@ class Actor(entities.Entity):
     def teleport(self, point: Vec2):
         self._set_position(point)
         
+    def damage(self, amount):
+        self._hurt(amount)
+        
 ## Actor
 class NPC(Actor):
     def __init__(self, game, name, position, size, color, speed, health, strength, defense, agility):
@@ -61,50 +64,71 @@ class Enemy(NPC):
         self._max_acceleration = 100000
         self.max_acceleration = self._max_acceleration
         super().__init__(game, defaults.ENEMY_NAME, position, size, defaults.ENEMY_COLOR, self._max_acceleration, 100, 1, 1, 1)
+        self.type = defaults.ENEMY_TYPE
         self._set_weapon(1, 75, 30000, 1, game.clock)
         self.targets = pygame.sprite.Group()
         self.targets.add(game.player)
+        self.get_body().model.shape.collision_type = defaults.ENEMY_TYPE
+
         
         
     def update(self):
         super().update()
         entities = self.game.entities.values()
 
-        # targets_hit = pygame.sprite.spritecollide(self, self.targets, False)
         for target in self.targets:
             if target == self: continue
             if target.name == defaults.PLAYER_NAME:
                 pbody = target.get_body()
                 ebody = self.get_body()
                 difference = (pbody.position - ebody.position)
+                if difference.length() == 0: continue
+
                 normal = difference / difference.length()
-                print(difference, normal)
-                if difference.length() > 1000:
-                    self.move(normal * 10)
+                
+                if difference.length() > self.game.screen.width / 2:
+                    self.move(normal * 4)
                 else:
-                    self.move(normal)
-     
-        
+                    speed = 1
+
+                    if Color.is_same_rgb(ebody.color, self.game.style.YELLOW):
+                        speed += 4
+                        
+                    if difference.length() < (self.game.screen.width / 4):
+                        if random.randint(0, 100) < 5:
+                            speed += 4
+
+                    if Color.is_same_rgb(ebody.color, self.game.style.GREEN):
+                        speed *= -1
+                    self.move(normal * speed)
+                    
         for entity in entities:
             if entity == self: continue
             
             pbody = entity.get_body()
             ebody = self.get_body()
             difference = (pbody.position - ebody.position)
+            
+            if difference.length() == 0: continue
+
             normal = difference / difference.length()
+            
 
             if entity.name == defaults.ENEMY_NAME:
                 if difference.length() < 400:
                     if difference.length() >= 200:
-                        self.max_acceleration += self._max_acceleration * 0.02
-                    else:
                         self.max_acceleration += self._max_acceleration * 0.001
+                    else:
+                        self.max_acceleration += self._max_acceleration * 0.002
                     self.move(normal * 0.5)
                     self.get_accelerator().max_acceleration = self.max_acceleration
                 else:
                     self.max_acceleration = self._max_acceleration
             elif entity.name == defaults.BULLET_NAME and difference.length() < 75:
-                    self.move(-normal * 2)
+                if Color.is_same_rgb(ebody.color, self.game.style.RED):
+                    self.move(-normal * 8)
+                else: 
+                    self.move(-normal)
             elif difference.length() < 75:
                     self.move(-normal)
  
