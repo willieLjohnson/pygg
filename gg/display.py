@@ -105,7 +105,7 @@ class Screen:
     def draw_particle(self, particle):
         if self.camera is not None:
             particle_color_factor = ((particle.rad / 5) * 100)
-            pygame.draw.circle(self.canvas, (particle_color_factor % 150, particle_color_factor % 110, particle_color_factor % 110, particle_color_factor % 255), (particle.x - self.camera.offset.x, particle.y - self.camera.offset.y), particle.rad)
+            pygame.draw.circle(self.canvas, (particle_color_factor % 90, particle_color_factor % 150, particle_color_factor % 150, particle_color_factor % 255), (particle.x - self.camera.offset.x, particle.y - self.camera.offset.y), particle.rad)
         else:
             if particle.rad > 0:
                 pygame.draw.circle(self.canvas, ecs.PLAYER_COLOR, (particle.x, particle.y), particle.rad)

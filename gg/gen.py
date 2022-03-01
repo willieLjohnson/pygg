@@ -18,6 +18,9 @@ def gen_float():
 def gen_range(min, max):
     return random.uniform(min, max)
 
+def gen_intrange(min, max):
+    return random.randint(min, max)
+
 def gen_color(alpha = None):
     return style.Color().randomized(alpha)
 
