@@ -6,7 +6,7 @@ from typing import Type
 
 
 from . import components
-
+from . import defaults
 
 Component = components.Component
 
@@ -41,6 +41,7 @@ class Entity(pygame.sprite.Sprite):
     _components: dict[str, Type[Component]]
     _image: pygame.Surface
     
+    type: int = defaults.ALL_TYPE
 
     def __init__(self, name: str, *components):
         super().__init__()
@@ -133,9 +134,10 @@ def generate_component_classmethods(*component_classes: Component):
                 model = Rectangle(space, position, size, color, elasticity, friction)
             else:
                 model = Circle(space, position, size.x, color, elasticity, friction)
- 
+
             if velocity: 
                 model.body.velocity = physics.point(velocity)
+            model.shape.entity_id = self.id
             self.add_component(Body(model))
             
         def _update_sprite_with_body(self):

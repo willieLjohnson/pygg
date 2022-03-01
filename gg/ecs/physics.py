@@ -1,4 +1,5 @@
 import pygame
+import uuid
 from dataclasses import dataclass
 import pymunk
 
@@ -13,7 +14,6 @@ Point = structures.Point
 
 Color = style.Color
 STYLE = style.STYLE
-
 
 @dataclass
 class Vertices:

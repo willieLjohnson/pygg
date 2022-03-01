@@ -5,6 +5,7 @@ from typing import List, Type
 
 
 from . import entities
+from . import defaults
 from .. import structures
 
 _Entity = entities.Entity
@@ -103,3 +104,4 @@ class PhysicsSystem(System):
                 continue
             
             entities.collide(entity, other)
+    
